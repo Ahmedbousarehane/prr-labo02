@@ -2,7 +2,7 @@ import java.io.*;
 import java.net.*;
 
 /**
- * Laboratoire No 2 PRR
+ * Laboratoire No 2 PRR - modif
  * Auteurs : L. Constantin & J.Gander
  * Date : octobre-novembre 2012
  * OS : Mac OS X 10.7 et 10.8
