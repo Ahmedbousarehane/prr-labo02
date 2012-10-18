@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="jar" name="Create Runnable Jar for Project PRR_Labo02 with Jar-in-Jar Loader">
+	<!--ANT 1.7 is required    -->
+
+
+	<target name="jar" depends="build,client,server,thread,clean">
+	</target>
+	<target name="build">
+		<javac classpath="../bin/" includes="*.java" srcdir="../src/" destdir="../bin/" debug="true" includeAntRuntime="no" />
+	</target>
+
+	<target name="clean">
+		<delete>
+			<fileset dir="../bin/">
+				<include name="*.class" />
+			</fileset>
+		</delete>
+	</target>
+
+	<target name="thread">
+		<jar destfile="./Labo02.jar">
+			<manifest>
+				<attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader" />
+				<attribute name="Rsrc-Main-Class" value="Labo02" />
+				<attribute name="Class-Path" value="." />
+				<attribute name="Rsrc-Class-Path" value="./" />
+			</manifest>
+			<zipfileset src="jar-in-jar-loader.zip" />
+			<fileset dir="../bin" />
+		</jar>
+	</target>
+	<target name="client">
+		<jar destfile="./Client.jar">
+			<manifest>
+				<attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader" />
+				<attribute name="Rsrc-Main-Class" value="Client" />
+				<attribute name="Class-Path" value="." />
+				<attribute name="Rsrc-Class-Path" value="./" />
+			</manifest>
+			<zipfileset src="jar-in-jar-loader.zip" />
+			<fileset dir="../bin" />
+		</jar>
+	</target>
+	<target name="server">
+		<jar destfile="./Bank.jar">
+			<manifest>
+				<attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader" />
+				<attribute name="Rsrc-Main-Class" value="Bank" />
+				<attribute name="Class-Path" value="." />
+				<attribute name="Rsrc-Class-Path" value="./" />
+			</manifest>
+			<zipfileset src="jar-in-jar-loader.zip" />
+			<fileset dir="../bin" />
+		</jar>
+	</target>
+</project>

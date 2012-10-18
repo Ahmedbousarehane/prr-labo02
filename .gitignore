@@ -1,0 +1,8 @@
+bin/*
+.DS_Store
+bin/.DS_Store
+src/.DS_Store
+jar/.DS_Store
+jar/Client.jar
+jar/Labo02.jar
+jar/Bank.jar
