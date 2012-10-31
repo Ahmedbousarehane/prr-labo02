@@ -1,4 +1,10 @@
-
+/**
+ * Classe permetant la gestion d'un compte
+ * 
+ * @version 1.0
+ * @author Laurent Constantin
+ * @author Jonathan Gander*
+ */
 public class Account {
 
 	/**

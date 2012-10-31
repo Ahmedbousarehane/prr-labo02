@@ -1,8 +1,4 @@
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
+
 import java.net.UnknownHostException;
 
 /**
@@ -26,7 +22,7 @@ public class Client {
 			}
 		}
 		catch (UnknownHostException uhe) {
-			System.out.println("Impossible de contacter une des banque.");
+			System.err.println("Impossible de contacter une des banque.");
 		}
 		
 
