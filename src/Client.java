@@ -7,78 +7,105 @@ import java.net.UnknownHostException;
 
 /**
  * Client.
- *  
+ * 
  * @version 1.0
  * @author Laurent Constantin
  * @author Jonathan Gander
  */
 public class Client {
-	
-	public Client() {
+
+	public static void main(String[] args) {
 
 		Menu choice;
 		
+		// Initialisation des guichetiers
+		Teller tellers[] = new Teller[Config.banksAddresses.length];
+		try {
+			for (int i = 0; i < tellers.length; i++) {
+				tellers[i] = new Teller(i);
+			}
+		}
+		catch (UnknownHostException uhe) {
+			System.out.println("Impossible de contacter une des banque.");
+		}
+		
+
 		System.out.println("DŽmarrage du client ");
 
 		do {
-			
+
 			// Choisir une banque
 			int bankChoice;
 			do {
-				System.out.print("Veuillez entrer le numero de la banque (0.."+ (Config.banksAddresses.length - 1) +") > ");
+				System.out.print("Veuillez entrer le numero de la banque (0.."
+						+ (Config.banksAddresses.length - 1) + ") > ");
 				bankChoice = Toolbox.readBank();
-				
-			} while (bankChoice < 0 || bankChoice > Config.banksAddresses.length - 1);
-			
-			
+
+			} while (bankChoice < 0
+					|| bankChoice > Config.banksAddresses.length - 1);
+
 			// Affichage du menu
 			for (Menu m : Menu.values()) {
 				System.out.println(m.ordinal() + ": " + m);
 			}
-			
+
 			// Lecture du choix
 			System.out.println("Votre choix > ");
 			choice = Toolbox.readMenu();
-			
+
 			if (choice == null) {
 				System.out.println("Erreur de saisie, veuillez recommencer.");
 				continue;
 			}
-						
+
 			// Lance la bonne operation
 			switch (choice) {
-				case ADD_ACCOUNT : {
-					
-				}
-				break;
-				case DELETE_ACCOUNT : {
-					
-				}
-				break;
-				case ADD_MONEY : {
-					
-				}
-				break;
-				case TAKE_MONEY : {
-					
-				}
-				break;
-				case GET_BALANCE : {
-					
-				}
-				break;
-				case QUIT : break;
-				default :
-					throw new UnsupportedOperationException("Menu inconnu");
+			case ADD_ACCOUNT: {
+				int money = Toolbox.readInt(1, Integer.MAX_VALUE);
+				
+				tellers[bankChoice].addAccount(money);
 			}
+				break;
+			case DELETE_ACCOUNT: {
+				System.out.print("Entrer le numero du compte a supprimer > ");
+				int account = Account.readAccount(bankChoice);	
 			
-		} while (choice != Menu.QUIT);
-			
-		System.out.println("Fin du client");
-	}
+				tellers[bankChoice].deleteAccount(account);
+			}
+				break;
+			case ADD_MONEY: {
+				System.out.print("Entrer le numero du compte a crediter > ");
+				int account = Account.readAccount(bankChoice);
+				System.out.print("Entrer le moutant a crediter > ");
+				int money = Toolbox.readInt(1, Integer.MAX_VALUE);
+				
+				tellers[bankChoice].addMoney(account,money);
+			}
+				break;
+			case TAKE_MONEY: {
+				System.out.print("Entrer le numero du compte a debiter > ");
+				int account = Account.readAccount(bankChoice);
+				System.out.print("Entrer le moutant a debiter > ");
+				int money = Toolbox.readInt(1, Integer.MAX_VALUE);
+				
+				tellers[bankChoice].takeMoney(account, money);
+			}
+				break;
+			case GET_BALANCE: {
+				System.out.print("Entrer le numero du compte > ");
+				int account = Account.readAccount(bankChoice);
+				
+				tellers[bankChoice].getBalance(account);
+			}
+				break;
+			case QUIT:
+				break;
+			default:
+				throw new UnsupportedOperationException("Menu inconnu");
+			}
 
-	public static void main(String[] args) {
-		// java -jar Client.jar host portClient unicastHost portServer
-		new Client();
+		} while (choice != Menu.QUIT);
+
+		System.out.println("Fin du client");
 	}
 }

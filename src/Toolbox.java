@@ -70,4 +70,36 @@ public class Toolbox {
 		else 
 			return Menu.values()[n];
 	}
+	
+	/**
+	 * Lit la saisie d'un int compris entre min et max
+	 * @param min valeur min
+	 * @param max valeur max
+	 * @return int compris entre min et max (inclus)
+	 */
+	public static int readInt(int min, int max) {
+		if (min > max) {
+			int tmp = max;
+			max = min;
+			min = tmp;
+		}
+		
+		int n;
+	
+		do {
+			try {
+				Scanner in = new Scanner(System.in);
+				n = in.nextInt();
+				
+				if (n >= min && n <= max) {
+					return n;
+				}
+				System.out.print("Veuillez entrer une valeur entre "+ min 
+						+" et "+ max +"> ");
+			}
+			catch (Exception e) {
+				System.out.println("Erreur de saisie");
+			}
+		} while (true);
+	}
 }
