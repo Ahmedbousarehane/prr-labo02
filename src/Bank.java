@@ -1,6 +1,6 @@
 import java.io.*;
 import java.net.*;
-
+import java.util.*;
 /**
  * Laboratoire No 2 PRR - modif
  * Auteurs : L. Constantin & J.Gander
@@ -30,6 +30,10 @@ import java.net.*;
  * @author Jonathan Gander
  */
 public class Bank {
+	
+	// Comptes (n,montant)
+	private Map<Integer,Integer> accounts = new HashMap<Integer,Integer>();
+	
 	public Bank(){}
 	
 	/**

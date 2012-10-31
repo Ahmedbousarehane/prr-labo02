@@ -1,5 +1,5 @@
 /**
- * Classe permetant la gestion d'un compte
+ * Classe permetant la gestion d'un numero de compte
  * 
  * @version 1.0
  * @author Laurent Constantin
@@ -15,6 +15,23 @@ public class Account {
 		int a = Toolbox.readInt(0, (int)(Math.pow(2, 25) - 1));
 		
 		return serializeAccount(bank, a);
+	}
+
+	/**
+	 * @param account An account number
+	 * @return account id
+	 */
+	public static int getAccountId(int account){
+		account =  account <<  8;
+		return account >>> 8;
+	}
+	
+	/**
+	 * @param account An account number
+	 * @return bankId
+	 */
+	public static int getBankId(int account){
+		return account >> 24;
 	}
 	
 	/**
