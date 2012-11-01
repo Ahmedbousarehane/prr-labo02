@@ -1,4 +1,5 @@
 
+import java.net.SocketException;
 import java.net.UnknownHostException;
 
 /**
@@ -23,6 +24,9 @@ public class Client {
 		}
 		catch (UnknownHostException uhe) {
 			System.err.println("Impossible de contacter une des banque.");
+		}
+		catch (SocketException se) {
+			System.err.println("Impossible d'ouvrir la connexion.");
 		}
 		
 
