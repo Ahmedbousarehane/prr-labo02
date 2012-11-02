@@ -35,6 +35,30 @@ public class Toolbox {
 		ByteBuffer bb = ByteBuffer.wrap(b);
 		return bb.getLong();
 	}
+	
+	/**
+	 * Permet de convertir un int en un tableau de byte
+	 * 
+	 * @param i int
+	 * @return Tableau de byte.
+	 */
+	public static byte[] int2Byte(int i) {
+		ByteBuffer boeuf = ByteBuffer.allocate(4);
+		boeuf.order(ByteOrder.BIG_ENDIAN);
+		boeuf.putInt(i);
+		return boeuf.array();
+	}
+
+	/**
+	 * Permet de convertir un tableau de byte en int
+	 * 
+	 * @param b le tableau de byte
+	 * @return Le int qu'il contient
+	 */
+	public static int int2Long(byte[] b) {
+		ByteBuffer bb = ByteBuffer.wrap(b);
+		return bb.getInt();
+	}
 
 	/**
 	 * @return Saisie d'une banque
