@@ -8,4 +8,5 @@
 public interface Config {
 	public static final int banksPorts[] = {1515,1516};
 	public static final String banksAddresses[] = {"127.0.0.1","127.0.0.1"};
+	public static final int bufferSize = 256;
 }

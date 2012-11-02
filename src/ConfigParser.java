@@ -37,4 +37,13 @@ public class ConfigParser implements Config {
 		}
 		return def;	
 	}
+	
+	/**
+	 * Renvoie l'id de la banque obtenu depuis la ligne de commande
+	 * @param args Ligne de commande
+	 * @param index Position dans la ligne de commande
+	 */
+	public static int getBankIdFromArg(String args[],int index){
+		return ConfigParser.getIntFromArgs(args, index, 0);
+	}
 }

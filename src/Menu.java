@@ -29,6 +29,11 @@ public enum Menu {
 	}
 	
 	public static Menu fromCode(byte code){
-		return Menu.values()[(int)code];
+		try{
+			return Menu.values()[(int)code];
+		}catch(ArrayIndexOutOfBoundsException aioobe){
+			aioobe.printStackTrace();
+			return null;
+		}
 	}
 }

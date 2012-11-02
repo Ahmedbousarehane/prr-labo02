@@ -1,3 +1,4 @@
+import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Scanner;
@@ -132,5 +133,88 @@ public class Toolbox {
 				System.out.println("Erreur de saisie");
 			}
 		} while (true);
+	}
+	
+	/**
+	 * Permet de construire un message avec la methode et les donnees a envoyer
+	 * 
+	 * @param code Code de la methode
+	 * @param datas Data a envoyer
+	 * @return Message a envoyer au serveur
+	 */
+	public static byte[] buildMessage(byte code, int... datas) {
+		byte[] message = new byte[1 + datas.length * 4];
+
+		message[0] = code;
+
+		int indice = 1;
+		for (int i = 0; i < datas.length; i++) {
+			byte[] data = Toolbox.int2Byte(datas[i]);
+
+			for (int j = 0; j < data.length; j++) {
+				message[indice++] = data[j];
+			}
+		}
+
+		return message;
+	}
+	/**
+	 * Permet de re-construire les donnees a partir du message recu
+	 * Les donnes sont obtenue a partir d'un DatagramPacket
+	 * @see buildData(byte[], int)
+	 * 
+	 * @param packet Un datagramPacket
+	 * @return les donnees du message
+	 */
+	public static int[] buildData(DatagramPacket packet) {
+		return buildData(packet.getData(),packet.getLength());
+	}
+	/**
+	 * Permet de re-construire les donnees a partir du message recu
+	 * Le code est ignore (message[0]);
+	 * 
+	 * @param message les donnes recu
+	 * @param taille du message
+	 * @return les donnees du message
+	 */	
+	public static int[] buildData(byte[] message, int length) {
+		// Attention: Ne pas utiliser message.length, 
+		// renvoie la taille du buffer et pas du contenu
+		
+		if (length <= 1)
+			throw new IllegalArgumentException();
+
+		// le code du message se trouve dans message[0];
+		// Le reste des donnees sont des entiers..
+		
+		// Si pas de donnees, renvoie un tableau vide (eviter le null)
+		if ((length - 1) % 4 != 0 ) {
+			return new int[0];
+		}
+		// Si des donnees
+		int nbInt = (length - 1) / 4;
+		int data[] = new int[nbInt];
+
+		if (message.length > 1) {
+			for (int index = 0; index < nbInt; index++) {
+				byte temp[] = new byte[4];
+				temp[0] = message[1 + index*4];
+				temp[1] = message[2 + index*4];
+				temp[2] = message[3 + index*4];
+				temp[3] = message[4 + index*4];
+				data[index] = Toolbox.byte2int(temp);
+			}
+		}
+		return data;
+	}
+	/**
+	 * Renvoie le code d'un message
+	 * @param p Un datagramme
+	 * @return Le code
+	 */
+	public static Byte getDataCode(DatagramPacket p){
+		if(p == null || p.getLength() == 0)
+			return null;
+		return p.getData()[0];
 	}
 }
