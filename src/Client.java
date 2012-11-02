@@ -61,8 +61,8 @@ public class Client {
 			// Lance la bonne operation
 			switch (choice) {
 			case ADD_ACCOUNT: {
+				System.out.print("Entrer le montant initial > ");
 				int money = Toolbox.readInt(1, Integer.MAX_VALUE);
-				
 				tellers[bankChoice].addAccount(money);
 			}
 				break;

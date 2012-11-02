@@ -1,5 +1,6 @@
 /**
  * Classe permettant la modelisation du menu client.
+ * Attention, 127 elements au maximum
  * 
  * @version 1.0
  * @author Laurent Constantin
@@ -22,5 +23,12 @@ public enum Menu {
 
 	public String toString() {
 		return text;
+	}
+	public byte getCode(){
+		return (byte)this.ordinal();
+	}
+	
+	public static Menu fromCode(byte code){
+		return Menu.values()[(int)code];
 	}
 }

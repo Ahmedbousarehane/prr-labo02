@@ -55,7 +55,7 @@ public class Toolbox {
 	 * @param b le tableau de byte
 	 * @return Le int qu'il contient
 	 */
-	public static int int2Long(byte[] b) {
+	public static int byte2int(byte[] b) {
 		ByteBuffer bb = ByteBuffer.wrap(b);
 		return bb.getInt();
 	}
