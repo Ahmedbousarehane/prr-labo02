@@ -30,6 +30,19 @@ public class Labo02 {
 				
 			}
 		}).start();
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					new Bank(1);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+		}).start();
 		System.out.println("Creation du client");
 
 		Thread t =new Thread(new Runnable() {

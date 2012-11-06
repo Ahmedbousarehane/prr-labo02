@@ -1,5 +1,7 @@
 import java.io.*;
 import java.net.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Laboratoire No 2 
@@ -40,7 +42,7 @@ public class Bank implements TellerInterface{
 	class HandleClientRequest implements Runnable {
 		private final Bank bank;
 		private final DatagramPacket packet;
-		public HandleClientRequest(Bank bank ,DatagramPacket packet) {
+		public HandleClientRequest(Bank bank, DatagramPacket packet) {
 			this.bank = bank;
 			this.packet = packet;
 		}
@@ -83,11 +85,16 @@ public class Bank implements TellerInterface{
 	}
 
 	// Comptes (n,montant)
-	// private Map<Integer,Integer> accounts = new HashMap<Integer,Integer>();
-	//private int bankId;
+	private Map<Integer,Integer> accounts = new HashMap<Integer,Integer>();
+	private int bankId;
 
 	private DatagramSocket clientSocket;
 
+	/**
+	 * Constructeur d'une banque
+	 * @param id Id de la banque
+	 * @throws SocketException
+	 */
 	public Bank(int id) throws SocketException {
 		System.out.println("Bank " + id + " : initialisation sur le port :"
 				+ Config.banksPorts[id]);
@@ -113,8 +120,7 @@ public class Bank implements TellerInterface{
 	 */
 	@Override
 	public void addAccount(int money) {
-		// TODO Auto-generated method stub
-		
+	
 	}
 
 	/* (non-Javadoc)
