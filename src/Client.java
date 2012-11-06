@@ -63,7 +63,8 @@ public class Client {
 			case ADD_ACCOUNT: {
 				System.out.print("Entrer le montant initial > ");
 				int money = Toolbox.readInt(1, Integer.MAX_VALUE);
-				tellers[bankChoice].addAccount(money);
+				int accountNumber = tellers[bankChoice].addAccount(money);
+				System.out.println("Compte cree : "+accountNumber);
 			}
 				break;
 			case DELETE_ACCOUNT: {

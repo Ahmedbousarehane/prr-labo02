@@ -6,13 +6,21 @@
  * @author Jonathan Gander*
  */
 public class Account {
-
+	/**
+	 * Renvoie le nombre de comptes maximum
+	 * @return le nombre de comptes maximum
+	 */
+	public static int getMaxAccount(){
+		return (int)(Math.pow(2, 25) - 1);
+	}
+	
+	
 	/**
 	 * @param bank Numero de la banque
 	 * @return Lit un numero de compte
 	 */
 	public static int readAccount(int bank) {
-		int a = Toolbox.readInt(0, (int)(Math.pow(2, 25) - 1));
+		int a = Toolbox.readInt(0, getMaxAccount());
 		
 		return serializeAccount(bank, a);
 	}
@@ -44,7 +52,7 @@ public class Account {
 		if (bank > (int)(Math.pow(2,9) - 1)) {
 			throw new IllegalArgumentException("Le numero de banque est trop grand !");
 		}
-		if (account < 0 || account > (int)(Math.pow(2, 25) - 1)) {
+		if (account < 0 || account > getMaxAccount()) {
 			throw new IllegalArgumentException("Le numero de compte n'est pas valide !");
 		}
 		

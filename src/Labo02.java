@@ -2,7 +2,7 @@
 /**
  * Labo02 - Permet d'instancier un thread pour le serveur et x threads clients.
  * Pour lancer le serveur et les clients dans des processus differents, utiliser
- * les fichi0ers jars. Cette classe sert uniquement de test et n'est pas a
+ * les fichiers jars. Cette classe sert uniquement de test et n'est pas a
  * utilisee pour le labo final. Pour un bon fonctionnement, il faut lancer les
  * fichiers .jar separement.
  * 

@@ -4,9 +4,7 @@ import java.nio.ByteOrder;
 import java.util.Scanner;
 
 /**
- * Classe utilitaire
- * - Conversion en byte
- * - Saisies utilisateur
+ * Classe utilitaire - Conversion en byte - Saisies utilisateur
  * 
  * @version 1.0
  * @author Laurent Constantin
@@ -36,7 +34,7 @@ public class Toolbox {
 		ByteBuffer bb = ByteBuffer.wrap(b);
 		return bb.getLong();
 	}
-	
+
 	/**
 	 * Permet de convertir un int en un tableau de byte
 	 * 
@@ -122,11 +120,11 @@ public class Toolbox {
 					return n;
 				}
 				String msg = "Veuillez entrer une valeur entre " + min + " et "
-						+ max + "> ";
+						+ max + " > ";
 
 				if (max == Integer.MAX_VALUE)
-					msg = "Veuillez entrer une valeur supperieur a " + min
-							+ "> ";
+					msg = "Veuillez entrer une valeur superieur a " + min
+							+ " > ";
 
 				System.out.print(msg);
 			} catch (Exception e) {
@@ -134,7 +132,7 @@ public class Toolbox {
 			}
 		} while (true);
 	}
-	
+
 	/**
 	 * Permet de construire un message avec la methode et les donnees a envoyer
 	 * 
@@ -158,37 +156,40 @@ public class Toolbox {
 
 		return message;
 	}
+
 	/**
-	 * Permet de re-construire les donnees a partir du message recu
-	 * Les donnes sont obtenue a partir d'un DatagramPacket
+	 * Permet de re-construire les donnees a partir du message recu Les donnes
+	 * sont obtenue a partir d'un DatagramPacket
+	 * 
 	 * @see buildData(byte[], int)
 	 * 
 	 * @param packet Un datagramPacket
 	 * @return les donnees du message
 	 */
 	public static int[] buildData(DatagramPacket packet) {
-		return buildData(packet.getData(),packet.getLength());
+		return buildData(packet.getData(), packet.getLength());
 	}
+
 	/**
-	 * Permet de re-construire les donnees a partir du message recu
-	 * Le code est ignore (message[0]);
+	 * Permet de re-construire les donnees a partir du message recu Le code est
+	 * ignore (message[0]);
 	 * 
 	 * @param message les donnes recu
 	 * @param taille du message
 	 * @return les donnees du message
-	 */	
+	 */
 	public static int[] buildData(byte[] message, int length) {
-		// Attention: Ne pas utiliser message.length, 
+		// Attention: Ne pas utiliser message.length,
 		// renvoie la taille du buffer et pas du contenu
-		
+
 		if (length <= 1)
 			throw new IllegalArgumentException();
 
 		// le code du message se trouve dans message[0];
 		// Le reste des donnees sont des entiers..
-		
+
 		// Si pas de donnees, renvoie un tableau vide (eviter le null)
-		if ((length - 1) % 4 != 0 ) {
+		if ((length - 1) % 4 != 0) {
 			return new int[0];
 		}
 		// Si des donnees
@@ -198,22 +199,24 @@ public class Toolbox {
 		if (message.length > 1) {
 			for (int index = 0; index < nbInt; index++) {
 				byte temp[] = new byte[4];
-				temp[0] = message[1 + index*4];
-				temp[1] = message[2 + index*4];
-				temp[2] = message[3 + index*4];
-				temp[3] = message[4 + index*4];
+				temp[0] = message[1 + index * 4];
+				temp[1] = message[2 + index * 4];
+				temp[2] = message[3 + index * 4];
+				temp[3] = message[4 + index * 4];
 				data[index] = Toolbox.byte2int(temp);
 			}
 		}
 		return data;
 	}
+
 	/**
 	 * Renvoie le code d'un message
+	 * 
 	 * @param p Un datagramme
 	 * @return Le code
 	 */
-	public static Byte getDataCode(DatagramPacket p){
-		if(p == null || p.getLength() == 0)
+	public static Byte getDataCode(DatagramPacket p) {
+		if (p == null || p.getLength() == 0)
 			return null;
 		return p.getData()[0];
 	}

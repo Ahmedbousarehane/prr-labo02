@@ -12,7 +12,7 @@ public interface TellerInterface {
 	 * 
 	 * @param money Montant initial
 	 */
-	public void addAccount(int money);
+	public int addAccount(int money);
 
 	/**
 	 * Permet de supprimer un compte

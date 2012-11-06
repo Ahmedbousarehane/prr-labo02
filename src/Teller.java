@@ -51,9 +51,12 @@ public class Teller implements TellerInterface {
 
 		socket.send(packet);
 	}
-
+	/**
+	 * Attend la reception d'un paquet (bloquant)
+	 * @return Le paquet recu
+	 * @throws IOException En cas d'erreur
+	 */
 	private DatagramPacket receivePacket() throws IOException {
-		// TODO vérifier taille
 		byte[] tampon = new byte[Config.bufferSize];
 
 		DatagramPacket packet = new DatagramPacket(tampon, tampon.length);
@@ -71,22 +74,29 @@ public class Teller implements TellerInterface {
 	 * 
 	 * @param money Montant initial
 	 */
-	public void addAccount(int money) {
+	public int addAccount(int money) {
 		// TODO Reponse du serveur
 		try {
 			sendPacket(Toolbox.buildMessage(Menu.ADD_ACCOUNT.getCode(), money));
 			
 			
-			// TODO : Reception
-			//    DatagramPacket p = receivePacket();
-			//    code d'erreur, structure de message identique que l'envoi?
-			//System.out.println("Code:"+p.getData()[0]);
-			//int[]data = Toolbox.buildData(p);
-			System.err.println("Reception non implementee");
+			DatagramPacket p = receivePacket();
+			ErrorServerClient code = ErrorServerClient.fromCode(p.getData()[0]);
+			// Si aucune erreur
+			if(code == ErrorServerClient.OK){
+				// renvoie le numero de compte
+				int[] data = Toolbox.buildData(p);
+				return data[0];
+			}else{
+				System.err.println("Plus de compte disponible ou montant incorrect");
+				return -1;
+			}
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return -1;
+
 	}
 
 	/**
