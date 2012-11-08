@@ -207,12 +207,11 @@ public class Bank implements TellerInterface {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see TellerInterface#addAccount(int)
+	/**
+	 * Cree un nouveau compte
+	 * @param montant initial
+	 * @return numero du compte
 	 */
-	@Override
 	public int addAccount(int money) {
 		// Boucle sur tous les comptes possibles
 		for (int i = 0; i < Account.getMaxAccount(); i++) {
@@ -229,12 +228,11 @@ public class Bank implements TellerInterface {
 		return -1;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see TellerInterface#deleteAccount(int)
+	/**
+	 * Supprime un compte (en section critique)
+	 * @param account Compte a supprimer
+	 * @return Code d'erreur
 	 */
-	@Override
 	public ErrorServerClient deleteAccount(int account) {
 		if (!accounts.containsKey(account)) {
 			return ErrorServerClient.COMPTE_INEXISTANT;
@@ -254,12 +252,13 @@ public class Bank implements TellerInterface {
 		return ErrorServerClient.OK;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see TellerInterface#addMoney(int, int)
+	
+	/**
+	 * Ajoute un montant a un compte (en section critique)
+	 * @param account Compte a crediter
+	 * @param money Montant a ajouter
+	 * @return Code d'erreur
 	 */
-	@Override
 	public ErrorServerClient addMoney(int account, int money) {
 		if (money < 0) {
 			return ErrorServerClient.MONTANT_INCORRECT;
@@ -280,12 +279,12 @@ public class Bank implements TellerInterface {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see TellerInterface#takeMoney(int, int)
+	/**
+	 * Debite un montant a un compte (en section critique)
+	 * @param account Compte a crediter
+	 * @param montant a supprimer 
+	 * @return Code d'erreur
 	 */
-	@Override
 	public ErrorServerClient takeMoney(int account, int money) {
 		if (money < 0) {
 			return ErrorServerClient.MONTANT_INCORRECT;
@@ -312,12 +311,11 @@ public class Bank implements TellerInterface {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see TellerInterface#getBalance(int)
+	/**
+	 * Obtient le solde d'un compte
+	 * @param account compte a qui obtenir le solde
+	 * @return Solde du compte
 	 */
-	@Override
 	public int getBalance(int account) {
 		if (accounts.containsKey(account))
 			return accounts.get(account);
