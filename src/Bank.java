@@ -88,31 +88,102 @@ public class Bank implements TellerInterface {
 				case ADD_ACCOUNT:
 					if (val[0] < 0) {
 						this.sendData(ErrorServerClient.MONTANT_INCORRECT);
+						return;
 					}
 
 					int accountNumber = bank.addAccount(val[0]);
 					if (accountNumber == -1) {
 						// Renvoi erreur 4 (autre)
 						this.sendData(ErrorServerClient.AUTRE);
-
+						return;
 					}
 
-					// renvoie num compte a l autre banque et au client
+					// Renvoie le numero de compte au client
 					this.sendData(ErrorServerClient.OK, accountNumber);
-					// TODO: Renvoyer au serveur
+
+					// TODO: Repliquer a l'autre banque
+					
 
 					break;
 				case DELETE_ACCOUNT:
-					bank.deleteAccount(val[0]);
+				{
+					// TODO: prendre MUTEX
+					
+					
+					ErrorServerClient ret = bank.deleteAccount(val[0]);
+					if (ret != ErrorServerClient.OK) {
+						
+						// Renvoie l'erreur
+						this.sendData(ret);
+						
+						// TODO lacher le MUTEX
+						
+						
+						return;
+					}
+					
+					this.sendData(ErrorServerClient.OK);
+					
+					// TODO repliquer a l'autre banque
+					
+					// TODO lacher le MUTEX
+				}
 					break;
 				case ADD_MONEY:
-					bank.addAccount(val[0]);
-					break;
-				case GET_BALANCE:
-					bank.getBalance(val[0]);
+				{
+					//  TODO : prendre le MUTEX
+					
+					
+					ErrorServerClient ret = bank.addMoney(val[0], val[1]);
+
+					if (ret != ErrorServerClient.OK) {
+						this.sendData(ret);
+						
+						// TODO lacher le MUTEX
+						
+						return;
+					}
+					
+					this.sendData(ErrorServerClient.OK);
+					
+					// TODO repliquer a l'autre banque
+					
+					// TODO lacher le MUTEX
+					
+				}
 					break;
 				case TAKE_MONEY:
-					bank.takeMoney(val[0], val[1]);
+				{
+					// TODO prendre le MUTEX
+					
+					ErrorServerClient ret = bank.takeMoney(val[0], val[1]);
+					
+					if (ret != ErrorServerClient.OK) {
+						this.sendData(ret);
+						
+						// TODO lacher le MUTEX
+						
+						return;
+					}
+					
+					this.sendData(ErrorServerClient.OK);
+					
+					// TODO repliquer a l'autre banque
+					
+					// TODO lacher le MUTEX
+					
+				}
+					break;
+				case GET_BALANCE:
+					int money = bank.getBalance(val[0]);
+					
+					if (money < 0) {
+						this.sendData(ErrorServerClient.COMPTE_INEXISTANT);
+						return;
+					}
+	
+					this.sendData(ErrorServerClient.OK, money);
+					
 					break;
 				default:
 					throw new IllegalStateException("Unimplemented action");
@@ -185,9 +256,17 @@ public class Bank implements TellerInterface {
 	 * @see TellerInterface#deleteAccount(int)
 	 */
 	@Override
-	public void deleteAccount(int account) {
-		// TODO Auto-generated method stub
-
+	public ErrorServerClient deleteAccount(int account) {
+		if (!accounts.containsKey(account)) {
+			return ErrorServerClient.COMPTE_INEXISTANT;
+		}
+		
+		if (accounts.get(account) != 0) {
+			return ErrorServerClient.SOLDE_INVALIDE;
+		}
+		
+		accounts.remove(account);
+		return ErrorServerClient.OK;
 	}
 
 	/*
@@ -196,8 +275,18 @@ public class Bank implements TellerInterface {
 	 * @see TellerInterface#addMoney(int, int)
 	 */
 	@Override
-	public void addMoney(int account, int money) {
-		// TODO Auto-generated method stub
+	public ErrorServerClient addMoney(int account, int money) {
+		if (money < 0) {
+			return ErrorServerClient.MONTANT_INCORRECT;
+		}
+		
+		if (!accounts.containsKey(account)) {
+			return ErrorServerClient.COMPTE_INEXISTANT;
+		}
+		
+		accounts.put(account, accounts.get(account) + money);
+		
+		return ErrorServerClient.OK;
 
 	}
 
@@ -207,8 +296,21 @@ public class Bank implements TellerInterface {
 	 * @see TellerInterface#takeMoney(int, int)
 	 */
 	@Override
-	public void takeMoney(int account, int money) {
-		// TODO Auto-generated method stub
+	public ErrorServerClient takeMoney(int account, int money) {
+		if (money < 0) {
+			return ErrorServerClient.MONTANT_INCORRECT;
+		}
+		
+		if (!accounts.containsKey(account)) {
+			return ErrorServerClient.COMPTE_INEXISTANT;
+		}
+		
+		if (accounts.get(account) - money < 0) {
+			return ErrorServerClient.SOLDE_INVALIDE;
+		}
+		
+		accounts.put(account, accounts.get(account) - money);
+		return ErrorServerClient.OK;
 
 	}
 
@@ -219,8 +321,10 @@ public class Bank implements TellerInterface {
 	 */
 	@Override
 	public int getBalance(int account) {
-		// TODO Auto-generated method stub
-		return 0;
+		if (accounts.containsKey(account))
+			return accounts.get(account);
+		
+		return -1;
 	}
 
 	/**

@@ -19,7 +19,7 @@ public interface TellerInterface {
 	 * 
 	 * @param account compte a supprimer
 	 */
-	public void deleteAccount(int account);
+	public ErrorServerClient deleteAccount(int account);
 
 	/**
 	 * Ajout de l'argent a un compte
@@ -27,7 +27,7 @@ public interface TellerInterface {
 	 * @param account Compte a crediter
 	 * @param money Montant a ajouter
 	 */
-	public void addMoney(int account, int money);
+	public ErrorServerClient addMoney(int account, int money);
 
 	/**
 	 * Debite de l'argent a un compte
@@ -35,7 +35,7 @@ public interface TellerInterface {
 	 * @param account Compte a debiter
 	 * @param money Montant a retirer
 	 */
-	public void takeMoney(int account, int money);
+	public ErrorServerClient takeMoney(int account, int money);
 
 	/**
 	 * Obtenir le solde du compte

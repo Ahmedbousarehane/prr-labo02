@@ -21,10 +21,12 @@ public class Teller implements TellerInterface {
 	/**
 	 * Constructeur
 	 * 
-	 * @param bankId Id de la banque a creer
-	 * @throws UnknownHostException Si la banque ne peut pas etre trouvee sur le
-	 *             reseau
-	 * @throws SocketException Si la socket ne peut etre ouverte
+	 * @param bankId
+	 *            Id de la banque a creer
+	 * @throws UnknownHostException
+	 *             Si la banque ne peut pas etre trouvee sur le reseau
+	 * @throws SocketException
+	 *             Si la socket ne peut etre ouverte
 	 */
 	public Teller(int bankId) throws UnknownHostException, SocketException {
 		if (bankId < 0 || bankId > Config.banksAddresses.length - 1)
@@ -41,20 +43,25 @@ public class Teller implements TellerInterface {
 	/**
 	 * Permet d'envoyer un tampon de donnees au serveur
 	 * 
-	 * @param tampon Tampon a envoyer
-	 * @throws IOException Erreur lors de l'envoi
+	 * @param tampon
+	 *            Tampon a envoyer
+	 * @throws IOException
+	 *             Erreur lors de l'envoi
 	 */
 	private void sendPacket(byte[] tampon) throws IOException {
-		System.out.println("Envoi de "+tampon.length+ "byte(s) a la banque");
+		System.out.println("Envoi de " + tampon.length + "byte(s) a la banque");
 		DatagramPacket packet = new DatagramPacket(tampon, tampon.length, host,
 				port);
 
 		socket.send(packet);
 	}
+
 	/**
 	 * Attend la reception d'un paquet (bloquant)
+	 * 
 	 * @return Le paquet recu
-	 * @throws IOException En cas d'erreur
+	 * @throws IOException
+	 *             En cas d'erreur
 	 */
 	private DatagramPacket receivePacket() throws IOException {
 		byte[] tampon = new byte[Config.bufferSize];
@@ -62,36 +69,34 @@ public class Teller implements TellerInterface {
 		DatagramPacket packet = new DatagramPacket(tampon, tampon.length);
 		System.out.println("Attente de la reponse de la banque");
 		socket.receive(packet);
-		
+
 		return packet;
 	}
-
-	
-
 
 	/**
 	 * Permet d'ajouter un compte
 	 * 
-	 * @param money Montant initial
+	 * @param money
+	 *            Montant initial
 	 */
 	public int addAccount(int money) {
-		// TODO Reponse du serveur
 		try {
+			// Envoi de la requete
 			sendPacket(Toolbox.buildMessage(Menu.ADD_ACCOUNT.getCode(), money));
-			
-			
+
+			// Reception de la reponse
 			DatagramPacket p = receivePacket();
 			ErrorServerClient code = ErrorServerClient.fromCode(p.getData()[0]);
+
 			// Si aucune erreur
-			if(code == ErrorServerClient.OK){
-				// renvoie le numero de compte
+			if (code == ErrorServerClient.OK) {
+				// Renvoie le numero de compte
 				int[] data = Toolbox.buildData(p);
 				return data[0];
-			}else{
-				System.err.println("Plus de compte disponible ou montant incorrect");
+			} else {
 				return -1;
 			}
-			
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -102,44 +107,98 @@ public class Teller implements TellerInterface {
 	/**
 	 * Permet de supprimer un compte
 	 * 
-	 * @param account compte a supprimer
+	 * @param account
+	 *            compte a supprimer
 	 */
-	public void deleteAccount(int account) {
-		// TODO Auto-generated method stub
+	public ErrorServerClient deleteAccount(int account) {
+		try {
+			// Envoi de la requete
+			sendPacket(Toolbox.buildMessage(Menu.DELETE_ACCOUNT.getCode(),
+					account));
+			
+			// Reception de la reponse
+			DatagramPacket p = receivePacket();
+			return ErrorServerClient.fromCode(p.getData()[0]);
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return ErrorServerClient.AUTRE;
 	}
 
 	/**
 	 * Ajout de l'argent a un compte
 	 * 
-	 * @param account Compte a crediter
-	 * @param money Montant a ajouter
+	 * @param account
+	 *            Compte a crediter
+	 * @param money
+	 *            Montant a ajouter
 	 */
-	public void addMoney(int account, int money) {
-		// TODO Auto-generated method stub
-
+	public ErrorServerClient addMoney(int account, int money) {
+		try {
+			// Envoi de la requete
+			sendPacket(Toolbox.buildMessage(Menu.ADD_MONEY.getCode(),
+					account, money));
+			
+			// Reception de la reponse
+			DatagramPacket p = receivePacket();
+			return ErrorServerClient.fromCode(p.getData()[0]);
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return ErrorServerClient.AUTRE;
 	}
 
 	/**
 	 * Debite de l'argent a un compte
 	 * 
-	 * @param account Compte a debiter
-	 * @param money Montant a retirer
+	 * @param account
+	 *            Compte a debiter
+	 * @param money
+	 *            Montant a retirer
 	 */
-	public void takeMoney(int account, int money) {
-		// TODO Auto-generated method stub
-
+	public ErrorServerClient takeMoney(int account, int money) {
+		try {
+			// Envoi de la requete
+			sendPacket(Toolbox.buildMessage(Menu.TAKE_MONEY.getCode(),
+					account, money));
+			
+			// Reception de la reponse
+			DatagramPacket p = receivePacket();
+			return ErrorServerClient.fromCode(p.getData()[0]);
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return ErrorServerClient.AUTRE;
 	}
 
 	/**
 	 * Obtenir le solde du compte
 	 * 
-	 * @param account Compte
+	 * @param account
+	 *            Compte
 	 * @return Solde du compte
 	 */
 	public int getBalance(int account) {
-		// TODO Auto-generated method stub
-
-		return 0;
+		try {
+			// Envoi de la requete
+			sendPacket(Toolbox.buildMessage(Menu.GET_BALANCE.getCode(),
+					account));
+			
+			// Reception de la reponse
+			DatagramPacket p = receivePacket();
+			ErrorServerClient code = ErrorServerClient.fromCode(p.getData()[0]);
+			
+			if (code == ErrorServerClient.OK) {
+				return p.getData()[1];
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return -1;
 	}
 
 }
