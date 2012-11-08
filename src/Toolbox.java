@@ -218,6 +218,25 @@ public class Toolbox {
 	public static Byte getDataCode(DatagramPacket p) {
 		if (p == null || p.getLength() == 0)
 			return null;
+
 		return p.getData()[0];
+	}
+
+	/**
+	 * Concatener deux tableaux de byte
+	 * 
+	 * @param d1 Le premier tableau
+	 * @param d2 Le deuxieme tableau
+	 * @return la concatenation
+	 */
+	public static byte[] concat(byte[] d1, byte[] d2) {
+		byte[] data = new byte[d1.length + d2.length];
+		for (int i = 0; i < d1.length; i++) {
+			data[i] = d1[i];
+		}
+		for (int i = 0; i < d2.length; i++) {
+			data[i + d2.length] = d2[i];
+		}
+		return data;
 	}
 }

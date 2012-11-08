@@ -1,7 +1,6 @@
-import java.net.SocketAddress;
-
 /**
- * Configuration par defaut
+ * Configuration par defaut des adresses et ports pour les 
+ * communications
  * 
  * @version 1.0
  * @author Laurent Constantin
@@ -25,4 +24,5 @@ public interface Config {
 	 * Port utilise pour la communication entre banques (lamport)
 	 */
 	public static final int interBankPort = 1517;
+
 }

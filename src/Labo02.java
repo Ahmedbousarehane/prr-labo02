@@ -1,6 +1,6 @@
 
 /**
- * Labo02 - Permet d'instancier un thread pour le serveur et x threads clients.
+ * Labo02 - Permet d'instancier 2 banques et 1 client.
  * Pour lancer le serveur et les clients dans des processus differents, utiliser
  * les fichiers jars. Cette classe sert uniquement de test et n'est pas a
  * utilisee pour le labo final. Pour un bon fonctionnement, il faut lancer les
@@ -24,7 +24,6 @@ public class Labo02 {
 				try {
 					new Bank(0);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
@@ -37,7 +36,6 @@ public class Labo02 {
 				try {
 					new Bank(1);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
@@ -53,7 +51,6 @@ public class Labo02 {
 					String args[] = {};
 					Client.main(args);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
@@ -63,7 +60,6 @@ public class Labo02 {
 		try {
 			t.join();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

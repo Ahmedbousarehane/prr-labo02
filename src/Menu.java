@@ -16,24 +16,34 @@ public enum Menu {
 	QUIT("Quitter");
 
 	private final String text;
-
+	/**
+	 * Action utilisateur avec texte descriptif
+	 * @param text La descritpion
+	 */
 	Menu(String text) {
 		this.text = text;
 	}
 
+	/**
+	 * Representation du menu
+	 * @return la description
+	 */
 	public String toString() {
 		return text;
 	}
+	/**
+	 * Permet d'obtenir le code de l'element pour un transfert reseau
+	 * @return Le code en byte
+	 */
 	public byte getCode(){
 		return (byte)this.ordinal();
 	}
-	
+	/**
+	 * Reconsruit l'element depuis le code (sans verifications)
+	 * @param code Le code (ordinal)
+	 * @return L'element de l'enum
+	 */
 	public static Menu fromCode(byte code){
-		try{
-			return Menu.values()[(int)code];
-		}catch(ArrayIndexOutOfBoundsException aioobe){
-			aioobe.printStackTrace();
-			return null;
-		}
+		return Menu.values()[(int)code];
 	}
 }

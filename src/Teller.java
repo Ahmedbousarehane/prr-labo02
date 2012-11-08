@@ -6,7 +6,7 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 
 /**
- * Represente un guichetier qui fait les requetes aux banques
+ * Represente un guichetier qui fait les requetes aux banques pour le client
  * 
  * @version 1.0
  * @author Laurent Constantin

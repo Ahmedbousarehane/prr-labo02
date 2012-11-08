@@ -191,6 +191,8 @@ public class Bank implements TellerInterface {
 		System.out.println("Bank " + id + " : initialisation sur le port :"
 				+ Config.banksPorts[id]);
 		listenFromClientSocket = new DatagramSocket(Config.banksPorts[id]);
+
+		
 		// 0. Receptionne une commande client
 
 		while (true) {
