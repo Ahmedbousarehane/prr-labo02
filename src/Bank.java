@@ -107,70 +107,47 @@ public class Bank implements TellerInterface {
 					break;
 				case DELETE_ACCOUNT:
 				{
-					// TODO: prendre MUTEX
-					
 					
 					ErrorServerClient ret = bank.deleteAccount(val[0]);
 					if (ret != ErrorServerClient.OK) {
-						
-						// Renvoie l'erreur
+						// Erreur au client
 						this.sendData(ret);
-						
-						// TODO lacher le MUTEX
-						
-						
 						return;
 					}
 					
+					// Reponse au client
 					this.sendData(ErrorServerClient.OK);
 					
-					// TODO repliquer a l'autre banque
-					
-					// TODO lacher le MUTEX
 				}
 					break;
 				case ADD_MONEY:
-				{
-					//  TODO : prendre le MUTEX
-					
+				{					
 					
 					ErrorServerClient ret = bank.addMoney(val[0], val[1]);
 
 					if (ret != ErrorServerClient.OK) {
+						// Erreur au client
 						this.sendData(ret);
-						
-						// TODO lacher le MUTEX
-						
 						return;
 					}
 					
+					// Reponse au client
 					this.sendData(ErrorServerClient.OK);
-					
-					// TODO repliquer a l'autre banque
-					
-					// TODO lacher le MUTEX
 					
 				}
 					break;
 				case TAKE_MONEY:
 				{
-					// TODO prendre le MUTEX
 					
 					ErrorServerClient ret = bank.takeMoney(val[0], val[1]);
-					
 					if (ret != ErrorServerClient.OK) {
-						this.sendData(ret);
-						
-						// TODO lacher le MUTEX
-						
+						// Erreur au client
+						this.sendData(ret);						
 						return;
 					}
 					
+					// Reponse au client
 					this.sendData(ErrorServerClient.OK);
-					
-					// TODO repliquer a l'autre banque
-					
-					// TODO lacher le MUTEX
 					
 				}
 					break;
@@ -178,10 +155,12 @@ public class Bank implements TellerInterface {
 					int money = bank.getBalance(val[0]);
 					
 					if (money < 0) {
+						// Erreur au client
 						this.sendData(ErrorServerClient.COMPTE_INEXISTANT);
 						return;
 					}
-	
+					
+					// Reponse au client
 					this.sendData(ErrorServerClient.OK, money);
 					
 					break;
@@ -265,7 +244,13 @@ public class Bank implements TellerInterface {
 			return ErrorServerClient.SOLDE_INVALIDE;
 		}
 		
+		// TODO: prendre MUTEX
+		
 		accounts.remove(account);
+		
+		// TODO repliquer a l'autre banque
+		// TODO lacher le MUTEX
+		
 		return ErrorServerClient.OK;
 	}
 
@@ -284,7 +269,12 @@ public class Bank implements TellerInterface {
 			return ErrorServerClient.COMPTE_INEXISTANT;
 		}
 		
+		//  TODO : prendre le MUTEX
+
 		accounts.put(account, accounts.get(account) + money);
+		
+		// TODO repliquer a l'autre banque
+		// TODO lacher le MUTEX
 		
 		return ErrorServerClient.OK;
 
@@ -309,7 +299,15 @@ public class Bank implements TellerInterface {
 			return ErrorServerClient.SOLDE_INVALIDE;
 		}
 		
+		// TODO prendre le MUTEX
+
+		
 		accounts.put(account, accounts.get(account) - money);
+		
+		// TODO repliquer a l'autre banque
+		// TODO lacher le MUTEX
+		
+		
 		return ErrorServerClient.OK;
 
 	}
