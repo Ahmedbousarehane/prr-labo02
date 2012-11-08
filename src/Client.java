@@ -1,4 +1,3 @@
-
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
@@ -14,21 +13,18 @@ public class Client {
 	public static void main(String[] args) {
 
 		Menu choice;
-		
+
 		// Initialisation des guichetiers
 		Teller tellers[] = new Teller[Config.banksAddresses.length];
 		try {
 			for (int i = 0; i < tellers.length; i++) {
 				tellers[i] = new Teller(i);
 			}
-		}
-		catch (UnknownHostException uhe) {
+		} catch (UnknownHostException uhe) {
 			System.err.println("Impossible de contacter une des banque.");
-		}
-		catch (SocketException se) {
+		} catch (SocketException se) {
 			System.err.println("Impossible d'ouvrir la connexion.");
 		}
-		
 
 		System.out.println("DŽmarrage du client ");
 
@@ -64,14 +60,21 @@ public class Client {
 				System.out.print("Entrer le montant initial > ");
 				int money = Toolbox.readInt(1, Integer.MAX_VALUE);
 				int accountNumber = tellers[bankChoice].addAccount(money);
-				System.out.println("Compte cree : "+accountNumber);
+				if (accountNumber < 0) {
+					System.out.println("Il n'y a plus de compte disponible !");
+				} else {
+					System.out.println("Compte cree : " + accountNumber);
+				}
 			}
 				break;
 			case DELETE_ACCOUNT: {
 				System.out.print("Entrer le numero du compte a supprimer > ");
-				int account = Account.readAccount(bankChoice);	
-			
-				tellers[bankChoice].deleteAccount(account);
+				int account = Account.readAccount(bankChoice);
+
+				ErrorServerClient ret = tellers[bankChoice]
+						.deleteAccount(account);
+
+				System.out.println(handleResponse(ret));
 			}
 				break;
 			case ADD_MONEY: {
@@ -79,8 +82,11 @@ public class Client {
 				int account = Account.readAccount(bankChoice);
 				System.out.print("Entrer le moutant a crediter > ");
 				int money = Toolbox.readInt(1, Integer.MAX_VALUE);
-				
-				tellers[bankChoice].addMoney(account,money);
+
+				ErrorServerClient ret = tellers[bankChoice].addMoney(account,
+						money);
+				System.out.println(handleResponse(ret));
+
 			}
 				break;
 			case TAKE_MONEY: {
@@ -88,15 +94,24 @@ public class Client {
 				int account = Account.readAccount(bankChoice);
 				System.out.print("Entrer le moutant a debiter > ");
 				int money = Toolbox.readInt(1, Integer.MAX_VALUE);
-				
-				tellers[bankChoice].takeMoney(account, money);
+
+				ErrorServerClient ret = tellers[bankChoice].takeMoney(account,
+						money);
+				System.out.println(handleResponse(ret));
+
 			}
 				break;
 			case GET_BALANCE: {
 				System.out.print("Entrer le numero du compte > ");
 				int account = Account.readAccount(bankChoice);
-				
-				tellers[bankChoice].getBalance(account);
+
+				int balance = tellers[bankChoice].getBalance(account);
+				if (balance < 0) {
+					System.out.println("Le compte entre n'existe pas !");
+				} else {
+					System.out.println("Solde du compte " + account + " : "
+							+ balance);
+				}
 			}
 				break;
 			case QUIT:
@@ -108,5 +123,30 @@ public class Client {
 		} while (choice != Menu.QUIT);
 
 		System.out.println("Fin du client");
+	}
+
+	/**
+	 * Permet d'afficher une message d'erreur correspondant a une reponse du
+	 * serveur au client
+	 * 
+	 * @param response
+	 *            La reponse recue du client
+	 * @return Le message d'erreur
+	 */
+	public static String handleResponse(ErrorServerClient response) {
+		switch (response) {
+		case OK:
+			return "Operation reussie !";
+		case COMPTE_INEXISTANT:
+			return "Le compte entre n'existe pas !";
+		case SOLDE_INVALIDE:
+			return "Le solde est invalide !";
+		case MONTANT_INCORRECT:
+			return "Le montant fourni est incorrect !";
+		case AUTRE:
+			return "Une erreur inconnue est survenue !";
+		default:
+			return "Une erreur non geree est survenue !";
+		}
 	}
 }

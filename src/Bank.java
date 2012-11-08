@@ -88,31 +88,81 @@ public class Bank implements TellerInterface {
 				case ADD_ACCOUNT:
 					if (val[0] < 0) {
 						this.sendData(ErrorServerClient.MONTANT_INCORRECT);
+						return;
 					}
 
 					int accountNumber = bank.addAccount(val[0]);
 					if (accountNumber == -1) {
 						// Renvoi erreur 4 (autre)
 						this.sendData(ErrorServerClient.AUTRE);
-
+						return;
 					}
 
-					// renvoie num compte a l autre banque et au client
+					// Renvoie le numero de compte au client
 					this.sendData(ErrorServerClient.OK, accountNumber);
-					// TODO: Renvoyer au serveur
+
+					// TODO: Repliquer a l'autre banque
+					
 
 					break;
 				case DELETE_ACCOUNT:
-					bank.deleteAccount(val[0]);
+				{
+					
+					ErrorServerClient ret = bank.deleteAccount(val[0]);
+					if (ret != ErrorServerClient.OK) {
+						// Erreur au client
+						this.sendData(ret);
+						return;
+					}
+					
+					// Reponse au client
+					this.sendData(ErrorServerClient.OK);
+					
+				}
 					break;
 				case ADD_MONEY:
-					bank.addAccount(val[0]);
-					break;
-				case GET_BALANCE:
-					bank.getBalance(val[0]);
+				{					
+					
+					ErrorServerClient ret = bank.addMoney(val[0], val[1]);
+
+					if (ret != ErrorServerClient.OK) {
+						// Erreur au client
+						this.sendData(ret);
+						return;
+					}
+					
+					// Reponse au client
+					this.sendData(ErrorServerClient.OK);
+					
+				}
 					break;
 				case TAKE_MONEY:
-					bank.takeMoney(val[0], val[1]);
+				{
+					
+					ErrorServerClient ret = bank.takeMoney(val[0], val[1]);
+					if (ret != ErrorServerClient.OK) {
+						// Erreur au client
+						this.sendData(ret);						
+						return;
+					}
+					
+					// Reponse au client
+					this.sendData(ErrorServerClient.OK);
+					
+				}
+					break;
+				case GET_BALANCE:
+					int money = bank.getBalance(val[0]);
+					
+					if (money < 0) {
+						// Erreur au client
+						this.sendData(ErrorServerClient.COMPTE_INEXISTANT);
+						return;
+					}
+					
+					// Reponse au client
+					this.sendData(ErrorServerClient.OK, money);
+					
 					break;
 				default:
 					throw new IllegalStateException("Unimplemented action");
@@ -157,12 +207,11 @@ public class Bank implements TellerInterface {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see TellerInterface#addAccount(int)
+	/**
+	 * Cree un nouveau compte
+	 * @param montant initial
+	 * @return numero du compte
 	 */
-	@Override
 	public int addAccount(int money) {
 		// Boucle sur tous les comptes possibles
 		for (int i = 0; i < Account.getMaxAccount(); i++) {
@@ -179,48 +228,99 @@ public class Bank implements TellerInterface {
 		return -1;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see TellerInterface#deleteAccount(int)
+	/**
+	 * Supprime un compte (en section critique)
+	 * @param account Compte a supprimer
+	 * @return Code d'erreur
 	 */
-	@Override
-	public void deleteAccount(int account) {
-		// TODO Auto-generated method stub
+	public ErrorServerClient deleteAccount(int account) {
+		if (!accounts.containsKey(account)) {
+			return ErrorServerClient.COMPTE_INEXISTANT;
+		}
+		
+		if (accounts.get(account) != 0) {
+			return ErrorServerClient.SOLDE_INVALIDE;
+		}
+		
+		// TODO: prendre MUTEX
+		
+		accounts.remove(account);
+		
+		// TODO repliquer a l'autre banque
+		// TODO lacher le MUTEX
+		
+		return ErrorServerClient.OK;
+	}
+
+	
+	/**
+	 * Ajoute un montant a un compte (en section critique)
+	 * @param account Compte a crediter
+	 * @param money Montant a ajouter
+	 * @return Code d'erreur
+	 */
+	public ErrorServerClient addMoney(int account, int money) {
+		if (money < 0) {
+			return ErrorServerClient.MONTANT_INCORRECT;
+		}
+		
+		if (!accounts.containsKey(account)) {
+			return ErrorServerClient.COMPTE_INEXISTANT;
+		}
+		
+		//  TODO : prendre le MUTEX
+
+		accounts.put(account, accounts.get(account) + money);
+		
+		// TODO repliquer a l'autre banque
+		// TODO lacher le MUTEX
+		
+		return ErrorServerClient.OK;
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see TellerInterface#addMoney(int, int)
+	/**
+	 * Debite un montant a un compte (en section critique)
+	 * @param account Compte a crediter
+	 * @param montant a supprimer 
+	 * @return Code d'erreur
 	 */
-	@Override
-	public void addMoney(int account, int money) {
-		// TODO Auto-generated method stub
+	public ErrorServerClient takeMoney(int account, int money) {
+		if (money < 0) {
+			return ErrorServerClient.MONTANT_INCORRECT;
+		}
+		
+		if (!accounts.containsKey(account)) {
+			return ErrorServerClient.COMPTE_INEXISTANT;
+		}
+		
+		if (accounts.get(account) - money < 0) {
+			return ErrorServerClient.SOLDE_INVALIDE;
+		}
+		
+		// TODO prendre le MUTEX
+
+		
+		accounts.put(account, accounts.get(account) - money);
+		
+		// TODO repliquer a l'autre banque
+		// TODO lacher le MUTEX
+		
+		
+		return ErrorServerClient.OK;
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see TellerInterface#takeMoney(int, int)
+	/**
+	 * Obtient le solde d'un compte
+	 * @param account compte a qui obtenir le solde
+	 * @return Solde du compte
 	 */
-	@Override
-	public void takeMoney(int account, int money) {
-		// TODO Auto-generated method stub
-
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see TellerInterface#getBalance(int)
-	 */
-	@Override
 	public int getBalance(int account) {
-		// TODO Auto-generated method stub
-		return 0;
+		if (accounts.containsKey(account))
+			return accounts.get(account);
+		
+		return -1;
 	}
 
 	/**
