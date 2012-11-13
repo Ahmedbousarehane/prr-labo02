@@ -192,7 +192,7 @@ public class Teller  {
 			ErrorServerClient code = ErrorServerClient.fromCode(p.getData()[0]);
 			
 			if (code == ErrorServerClient.OK) {
-				return p.getData()[1];
+				return Toolbox.buildData(p)[0];
 			}
 			
 		} catch (IOException e) {

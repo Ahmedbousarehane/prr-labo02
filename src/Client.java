@@ -103,7 +103,8 @@ public class Client {
 				break;
 			case GET_BALANCE: {
 				System.out.print("Entrer le numero du compte > ");
-				int account = Account.readAccount(bankChoice);
+				int account =  Toolbox.readInt(0, Account.getMaxAccount());
+				//Account.readAccount(bankChoice);
 
 				int balance = tellers[bankChoice].getBalance(account);
 				if (balance < 0) {

@@ -80,6 +80,7 @@ public class Lamport implements Runnable {
 		// Si on a pas le mutex, on est en attente !
 		if (!hasMutex) {
 			try {
+				// TODO : WAIT A FAIRE... IllegalMonitorStateException
 				wait();
 			} catch (InterruptedException e) {
 				e.printStackTrace();

@@ -114,7 +114,7 @@ public class Bank implements LamportOnUnlock {
 				return;
 			}
 
-			System.out.println("La banque recoit:\n > action : " + action);
+			System.out.println("La banque "+bankId+" recoit:\n > action : " + action);
 			int val[] = Toolbox.buildData(this.packet);
 			for (int i = 0; i < val.length; i++)
 				System.out.println(" > " + val[i]);
@@ -200,8 +200,9 @@ public class Bank implements LamportOnUnlock {
 					}
 
 					// Reponse au client
+					// TODO Remove debug
+					System.out.println("GET_BALANCE : Solde du compte "+val[0]+" => "+money);
 					this.sendData(ErrorServerClient.OK, money);
-
 					break;
 				default:
 					throw new IllegalStateException("Unimplemented action");
