@@ -107,7 +107,7 @@ public class Client {
 
 				int balance = tellers[bankChoice].getBalance(account);
 				if (balance < 0) {
-					System.out.println("Le compte entre n'existe pas !");
+					System.out.println("Le compte "+account+" n'existe pas !");
 				} else {
 					System.out.println("Solde du compte " + account + " : "
 							+ balance);

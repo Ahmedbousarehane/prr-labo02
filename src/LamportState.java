@@ -4,14 +4,13 @@
  * 
  * @author Laurent Constantin
  * @author Jonathan Gander 
- * 
- * TODO : Ajouter ID de l'emetteur ou utiliser IP pour
- *         avoir un ID ?
  */
 public class LamportState {
 
 	public LamportMessages type;
 	public int timestamp;
+	// Utilise pour l'envoi et la reception uniquement
+	public int remoteBankId;
 
 	/**
 	 * Construit un message de type RELEASE et d'estampille 0.
@@ -50,13 +49,21 @@ public class LamportState {
 	 * 
 	 * @return Le tableau de byte
 	 */
-	public byte[] toByte() {
-		byte[] data = new byte[1 + 4];
+	public byte[] toByte(int bankId) {
+		byte[] data = new byte[1 + 4 + 4];
+		// Type [1]
 		data[0] = type.getCode();
+		// Timestamp [4]
 		byte[] temp = Toolbox.int2Byte(timestamp);
 		for (int i = 0; i < temp.length; i++) {
 			data[1 + i] = temp[i];
 		}
+		// Bank id [4]
+		temp = Toolbox.int2Byte(bankId);
+		for (int i = 0; i < temp.length; i++) {
+			data[5 + i] = temp[i];
+		}		
+		
 		return data;
 	}
 
@@ -67,16 +74,25 @@ public class LamportState {
 	 * @param length Longueur des donnees
 	 * @return type et entropie du message
 	 */
-	public static LamportState fromByte(byte[] data) {
-		assert (data.length >= 5);
-		//
+	public static LamportState fromByte(byte[] data,int length) {
+		assert (length >= 9);
+		// type
 		LamportState state = new LamportState();
 		state.type = LamportMessages.fromCode(data[0]);
+		// timestamp
 		byte[] tempInt = new byte[4];
 		for (int i = 0; i < tempInt.length; i++) {
 			tempInt[i] = data[i + 1];
 		}
 		state.timestamp = Toolbox.byte2int(tempInt);
+		// Bank ID
+		tempInt = new byte[4];
+		for (int i = 0; i < tempInt.length; i++) {
+			tempInt[i] = data[i + 5];
+		}	
+		state.remoteBankId = Toolbox.byte2int(tempInt);
+
+		
 		return state;
 	}
 

@@ -4,7 +4,7 @@
  * Ainsi la banque doit implementer cette interface. 
  * La creation de l'interface au sens POO du terme n'est pas correcte. 
  * Mais elle permet de ne pas oublier de methodes d'un cote ou de l'autre.
- * 
+ * TODO : Supprimer
  */
 public interface TellerInterface {
 	/**

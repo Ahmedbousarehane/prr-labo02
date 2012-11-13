@@ -167,7 +167,7 @@ public class Toolbox {
 	 * @return les donnees du message
 	 */
 	public static int[] buildData(DatagramPacket packet) {
-		return buildData(packet.getData(), packet.getLength());
+		return buildData(packet.getData(), packet.getLength(),0);
 	}
 
 	/**
@@ -178,7 +178,7 @@ public class Toolbox {
 	 * @param taille du message
 	 * @return les donnees du message
 	 */
-	public static int[] buildData(byte[] message, int length) {
+	public static int[] buildData(byte[] message, int length,int offset) {
 		// Attention: Ne pas utiliser message.length,
 		// renvoie la taille du buffer et pas du contenu
 
@@ -199,10 +199,10 @@ public class Toolbox {
 		if (message.length > 1) {
 			for (int index = 0; index < nbInt; index++) {
 				byte temp[] = new byte[4];
-				temp[0] = message[1 + index * 4];
-				temp[1] = message[2 + index * 4];
-				temp[2] = message[3 + index * 4];
-				temp[3] = message[4 + index * 4];
+				temp[0] = message[offset + 1 + index * 4];
+				temp[1] = message[offset + 2 + index * 4];
+				temp[2] = message[offset + 3 + index * 4];
+				temp[3] = message[offset + 4 + index * 4];
 				data[index] = Toolbox.byte2int(temp);
 			}
 		}

@@ -12,27 +12,24 @@ import java.net.SocketException;
  * @author Gander Jonathan
  * @version 1.0
  * 
- * TODO : Gestion du reseau, mutex sur donnees locale.
- * File d'attentes FIFO.
- * 
  */
-public class Lamport {
+public class Lamport implements Runnable {
 	// Pour la communication
 	private DatagramSocket socket;
 	private final int port;
 
 	// Pour le mutex
 	private int localTimestamp; // horloge logique
-	private boolean hasMutex = false;
+	private Boolean hasMutex = false;
 
 	// Id de la banque courante
-	int bankId;
+	final Bank bank;
 	// Tableau des etats
 	private LamportState[] state;
 
-	public Lamport(int bankId) throws SocketException {
-		this.bankId = bankId;
-		this.port = Config.interBankPort;
+	public Lamport(Bank bank) throws SocketException {
+		this.bank = bank;
+		this.port = Config.bank2bankLamportPort[bank.getId()];
 		socket = new DatagramSocket(port);
 
 		// Initialise le tableau d'etat
@@ -49,42 +46,60 @@ public class Lamport {
 	private boolean localAccesGranted() {
 		// Il peut si etat[bankid]=requete
 		// et que son estampille est la plus ancienne !
-		if (state[bankId].type != LamportMessages.REQUEST)
+		if (state[bank.getId()].type != LamportMessages.REQUEST)
 			return false;
 
-		int myTimeStamp = state[bankId].timestamp;
+		int myTimeStamp = state[bank.getId()].timestamp;
 		for (int i = 0; i < state.length; i++) {
-			if (myTimeStamp > state[i].timestamp)
+			if (myTimeStamp > state[i].timestamp) {
 				return false;
-			else if (myTimeStamp == state[i].timestamp && i != bankId) {
-				if (bankId > i)
+			} else if (myTimeStamp == state[i].timestamp && i != bank.getId()) {
+				if (bank.getId() > i)
 					return false;
 			}
 		}
+		System.out.println("Lamport.localAccesGranted() : Pour la banque "+bank.getId());
 		return true;
 	}
 
 	/**
-	 * Pour obtenir le mutex 
-	 * TODO implementer
+	 * Pour obtenir le mutex
+	 * 
+	 * @throws IOException
 	 */
-	public void lock() {
+	public void lock() throws IOException {
+		System.out.println("Lamport.lock()");
+		// Mise a jour de l'estampille
+		localTimestamp++;
+		// Envoi d'une requete
+		state[bank.getId()].set(LamportMessages.REQUEST, localTimestamp);
+		sendToAll(state[bank.getId()].toByte(this.bank.getId()));
+		// Indique si l'on peut avoir le mutex
+		hasMutex = localAccesGranted();
 
+		// Si on a pas le mutex, on est en attente !
+		if (!hasMutex) {
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/**
 	 * Libere le mutex et envoie des donnees dans le message de liberation
 	 * 
 	 * @param code Le type de message.
-	 * @param data Les donnes. 
-	 * TODO : Implementer
+	 * @param data Les donnes.
 	 * @throws IOException
 	 */
 	public void unlock(LamportUnlockMessage type, int... data)
 			throws IOException {
+		System.out.println("Lamport.unlock()");
 		// Construction du message a envoyer
-		state[bankId].set(LamportMessages.RELEASE, localTimestamp);
-		byte[] messageData = state[bankId].toByte();
+		state[bank.getId()].set(LamportMessages.RELEASE, localTimestamp);
+		byte[] messageData = state[bank.getId()].toByte(bank.getId());
 		// Ajout des infos de liberation
 		byte[] temp = Toolbox.buildMessage((byte) type.ordinal(), data);
 		// Envoi
@@ -100,7 +115,7 @@ public class Lamport {
 	 */
 	public void sendToAll(byte[] data) throws IOException {
 		for (int i = 0; i < state.length; i++) {
-			if (i == bankId)
+			if (i == bank.getId())
 				continue;
 			send(i, data);
 		}
@@ -122,18 +137,39 @@ public class Lamport {
 		socket.send(packet);
 	}
 
+	public void run() {
+		byte[] buffer = new byte[Config.bufferSize];
+		DatagramPacket data = new DatagramPacket(buffer, buffer.length);
+
+		while (true) {
+			try {
+				System.out.println("Lamport.run() : Attente");
+				socket.receive(data);
+
+				LamportState state = LamportState.fromByte(data.getData(),
+						data.getLength());
+				System.out.println("Lamport.run() : Recu action "+state.type);
+
+				acceptReceive(state, data);
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	/**
 	 * Implementation du Receive (code accept receive d'ada)
 	 * 
 	 * @param remoteBankId L'Id de la banque distante
 	 * @param state Etat de la requete
 	 * @throws IOException En cas d'erreur
-	 * TODO : Utiliser cette fonction
 	 */
-	private void acceptReceive(int remoteBankId, LamportState state)
+	private void acceptReceive(LamportState state, DatagramPacket data)
 			throws IOException {
-		
-		
+
+		int remoteBankId = state.remoteBankId;
+
 		// Met a jour l'estampille
 		localTimestamp = Math.max(localTimestamp, state.timestamp) + 1;
 		// Effectue les actions suivant le type de message recu
@@ -144,15 +180,47 @@ public class Lamport {
 					state.timestamp);
 
 			// Envoi du recu
-			LamportState data = new LamportState(LamportMessages.RECEIPT,
+			LamportState data2send = new LamportState(LamportMessages.RECEIPT,
 					localTimestamp);
 
-			send(remoteBankId, data.toByte());
+			send(remoteBankId, data2send.toByte(bank.getId()));
 			break;
 		case RELEASE:
 			// Mise a jour de la table locale
 			this.state[remoteBankId].set(LamportMessages.RELEASE,
 					state.timestamp);
+			// Recupe des donnees en plus dans le message de release
+			if (state.type == LamportMessages.RELEASE && data.getLength() >= 9) {
+				// Construction des donnees
+				byte code = data.getData()[8];
+				int[] releaseData = Toolbox.buildData(data.getData(),
+						data.getLength() - 9, 9);
+
+				// Conversion en enum
+				try {
+					LamportUnlockMessage lum = LamportUnlockMessage
+							.fromCode(code);
+					// Mise a jour de la banque suivant les donnees recues
+
+					switch (lum) {
+					case DELETE_ACCOUNT:
+						bank.handleOnDelete(releaseData[0]);
+						break;
+					case UPDATE_MONEY:
+						bank.handleOnUpdate(releaseData[0], releaseData[1]);
+						break;
+					default:
+						System.err
+								.println("LamportRelease: action non implementee");
+						break;
+					}
+				} catch (ArrayIndexOutOfBoundsException aioobe) {
+					System.err.println("LamportRelease: Erreur de conversion");
+					aioobe.printStackTrace();
+				}
+
+			}
+
 			break;
 		case RECEIPT:
 			// Ignore le recu si on avait pas de demande
@@ -164,41 +232,8 @@ public class Lamport {
 
 		}
 		// Indique si l'on peut avoir le mutex
-		hasMutex = (this.state[bankId].type == LamportMessages.REQUEST)
+		hasMutex = (this.state[bank.getId()].type == LamportMessages.REQUEST)
 				&& localAccesGranted();
-	}
 
-	/**
-	 * Envoi d'une demande d'obtention de mutex aux autres sites. Implementation
-	 * du code ada "accept demande"
-	 * 
-	 * @throws IOException En cas d'erreur
-	 * TODO : Utiliser cette fonction
-	 */
-	private void acceptRequest() throws IOException {
-		// Mise a jour de l'estampille
-		localTimestamp++;
-		// Envoi d'une requete
-		state[bankId].set(LamportMessages.REQUEST, localTimestamp);
-		sendToAll(state[bankId].toByte());
-		// Indique si l'on peut avoir le mutex
-		hasMutex = localAccesGranted();
 	}
-
-	/**
-	 * Renvoi le numero de la banque a partir d'un datagramme
-	 * 
-	 * @param p Le datagramme
-	 * @return L'ID de la banque ou -1
-	 * TODO A tester ! Utiliser si on code pas l'id dans LamportMessage
-	 */
-	public static int getBankIdFromDatagram(DatagramPacket p) {
-		String address = p.getAddress().getHostAddress();
-		for (int i = 0; i < Config.banksAddresses.length; i++) {
-			if (Config.banksAddresses[i].compareToIgnoreCase(address) == 0)
-				return i;
-		}
-		return -1;
-	}
-	
 }

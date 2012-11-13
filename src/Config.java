@@ -10,7 +10,7 @@ public interface Config {
 	/**
 	 * Ports utilises pour les communications
 	 */
-	public static final int banksPorts[] = {1515,1516};
+	public static final int banks2ClientPorts[] = {1515,1516};
 	/**
 	 * IP utilises pour les communications
 	 */
@@ -23,6 +23,10 @@ public interface Config {
 	/**
 	 * Port utilise pour la communication entre banques (lamport)
 	 */
-	public static final int interBankPort = 1517;
+	public static final int bank2bankLamportPort[] = {1517,1518};
+	/**
+	 * Utilise pour la communication entre banques sans Lamport
+	 */
+	public static final int bank2bank[] = {1519,1520};
 
 }

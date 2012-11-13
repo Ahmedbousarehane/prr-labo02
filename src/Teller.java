@@ -12,7 +12,7 @@ import java.net.SocketException;
  * @author Laurent Constantin
  * @author Jonathan Gander
  */
-public class Teller implements TellerInterface {
+public class Teller  {
 	private int port;
 	private InetAddress host;
 
@@ -33,7 +33,7 @@ public class Teller implements TellerInterface {
 			throw new IllegalArgumentException(
 					"No de banque invalide pour le guichetier !");
 
-		port = Config.banksPorts[bankId];
+		port = Config.banks2ClientPorts[bankId];
 		host = InetAddress.getByName(Config.banksAddresses[bankId]);
 
 		socket = new DatagramSocket();
