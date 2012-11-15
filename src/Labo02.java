@@ -16,7 +16,6 @@ public class Labo02 {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		System.out.println("Test du labo\nCreation des banques");
 		new Thread(new Runnable() {
 			
 			@Override
@@ -41,8 +40,6 @@ public class Labo02 {
 				
 			}
 		}).start();
-		System.out.println("Creation du client");
-
 		Thread t =new Thread(new Runnable() {
 			
 			@Override

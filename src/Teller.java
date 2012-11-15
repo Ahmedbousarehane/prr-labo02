@@ -49,7 +49,6 @@ public class Teller  {
 	 *             Erreur lors de l'envoi
 	 */
 	private void sendPacket(byte[] tampon) throws IOException {
-		System.out.println("Envoi de " + tampon.length + "byte(s) a la banque");
 		DatagramPacket packet = new DatagramPacket(tampon, tampon.length, host,
 				port);
 
@@ -67,7 +66,7 @@ public class Teller  {
 		byte[] tampon = new byte[Config.bufferSize];
 
 		DatagramPacket packet = new DatagramPacket(tampon, tampon.length);
-		System.out.println("Attente de la reponse de la banque");
+		//System.out.println("Attente de la reponse de la banque");
 		socket.receive(packet);
 
 		return packet;

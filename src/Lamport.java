@@ -18,6 +18,7 @@ public class Lamport implements Runnable {
 	private DatagramSocket socket;
 	private final int port;
 
+	private final boolean DEBUG = true;
 	// Pour le mutex
 	private int localTimestamp; // horloge logique
 	private Boolean hasMutex = false;
@@ -30,12 +31,17 @@ public class Lamport implements Runnable {
 	public Lamport(Bank bank) throws SocketException {
 		this.bank = bank;
 		this.port = Config.bank2bankLamportPort[bank.getId()];
+		System.out.println("La banque " + bank.getId() + " ecoute sur le port "
+				+ port);
 		socket = new DatagramSocket(port);
 
 		// Initialise le tableau d'etat
 		state = new LamportState[Config.banksAddresses.length];
 		for (int i = 0; i < state.length; i++)
 			state[i] = new LamportState();
+
+		new Thread(this).start();
+
 	}
 
 	/**
@@ -58,7 +64,6 @@ public class Lamport implements Runnable {
 					return false;
 			}
 		}
-		System.out.println("Lamport.localAccesGranted() : Pour la banque "+bank.getId());
 		return true;
 	}
 
@@ -73,19 +78,37 @@ public class Lamport implements Runnable {
 		localTimestamp++;
 		// Envoi d'une requete
 		state[bank.getId()].set(LamportMessages.REQUEST, localTimestamp);
-		sendToAll(state[bank.getId()].toByte(this.bank.getId()));
+		sendToAllOthersBank(state[bank.getId()].toByte(this.bank.getId()));
 		// Indique si l'on peut avoir le mutex
-		hasMutex = localAccesGranted();
 
 		// Si on a pas le mutex, on est en attente !
-		if (!hasMutex) {
-			try {
-				// TODO : WAIT A FAIRE... IllegalMonitorStateException
-				wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		synchronized (this) {
+			hasMutex = localAccesGranted();
+
+			while (!hasMutex) {
+				try {
+					if (DEBUG) {
+						System.out.println("Wait() sur la banque "
+								+ bank.getId());
+					}
+					wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				hasMutex = localAccesGranted();
+
 			}
 		}
+	}
+
+	public void accountCreated(int account, int money) throws IOException {
+
+		// Infos de creation de compte
+		byte[] temp = Toolbox.buildMessage(
+				LamportMessages.NEW_ACCOUNT.getCode(), account, money);
+
+		// Envoi
+		sendToAllOthersBank(temp);
 	}
 
 	/**
@@ -95,17 +118,27 @@ public class Lamport implements Runnable {
 	 * @param data Les donnes.
 	 * @throws IOException
 	 */
-	public void unlock(LamportUnlockMessage type, int... data)
+	public void unlock(LamportUnlockMessage unlockType, int... data)
 			throws IOException {
 		System.out.println("Lamport.unlock()");
+
+		Toolbox.pause();
+
 		// Construction du message a envoyer
 		state[bank.getId()].set(LamportMessages.RELEASE, localTimestamp);
 		byte[] messageData = state[bank.getId()].toByte(bank.getId());
 		// Ajout des infos de liberation
-		byte[] temp = Toolbox.buildMessage((byte) type.ordinal(), data);
+		byte[] temp = Toolbox.buildMessage(unlockType.getCode(), data);
 		// Envoi
-		sendToAll(Toolbox.concat(messageData, temp));
-		hasMutex = false;
+		sendToAllOthersBank(Toolbox.concat(messageData, temp));
+		synchronized (this) {
+			hasMutex = false;
+			/*
+			 * if(DEBUG){ System.out.println("Lamport.unlock()");
+			 * System.out.println("notify() sur la banque " + bank.getId()); }
+			 * // TODO notify aussi dans acceptReceive a verifier notify();
+			 */
+		}
 	}
 
 	/**
@@ -114,11 +147,11 @@ public class Lamport implements Runnable {
 	 * @param data Le message
 	 * @throws IOException En cas d'erreur
 	 */
-	public void sendToAll(byte[] data) throws IOException {
+	public void sendToAllOthersBank(byte[] data) throws IOException {
 		for (int i = 0; i < state.length; i++) {
-			if (i == bank.getId())
-				continue;
-			send(i, data);
+			if (i != bank.getId()) {
+				send(i, data);
+			}
 		}
 	}
 
@@ -131,6 +164,9 @@ public class Lamport implements Runnable {
 	 */
 	public void send(int bankId, byte[] data) throws IOException {
 		// Construction de l'adresse et du datagramme
+		int port = Config.bank2bankLamportPort[bankId];
+		// System.out.println("Envoi a la banque " + bankId + " sur le port "
+		// + port);
 		InetAddress host = InetAddress.getByName(Config.banksAddresses[bankId]);
 		DatagramPacket packet = new DatagramPacket(data, data.length, host,
 				port);
@@ -144,14 +180,24 @@ public class Lamport implements Runnable {
 
 		while (true) {
 			try {
-				System.out.println("Lamport.run() : Attente");
 				socket.receive(data);
 
-				LamportState state = LamportState.fromByte(data.getData(),
-						data.getLength());
-				System.out.println("Lamport.run() : Recu action "+state.type);
+				// Regarde si une autre banque envoie un nouveau compte cree
+				LamportMessages type = LamportMessages
+						.fromCode(data.getData()[0]);
+				// System.out.println("Lamport.run() : Recu action " + type +
+				// " sur la banque " + bank.getId());
+				if (type == LamportMessages.NEW_ACCOUNT) {
+					int[] newAccountData = Toolbox.buildData(data.getData(),
+							data.getLength(), 0);
+					bank.handleOnCreate(newAccountData[0], newAccountData[1]);
 
-				acceptReceive(state, data);
+				} else {
+					// Sinon on a un message lamport normale (type,estamille,..)
+					LamportState state = LamportState.fromByte(data.getData(),
+							data.getLength());
+					acceptReceive(state, data);
+				}
 
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -175,6 +221,11 @@ public class Lamport implements Runnable {
 		localTimestamp = Math.max(localTimestamp, state.timestamp) + 1;
 		// Effectue les actions suivant le type de message recu
 		switch (state.type) {
+
+		// Deja traite car pas un message lamport standard
+		case NEW_ACCOUNT:
+			assert (true);
+			break;
 		case REQUEST:
 			// Mise a jour de la table locale
 			this.state[remoteBankId].set(LamportMessages.REQUEST,
@@ -193,31 +244,26 @@ public class Lamport implements Runnable {
 			// Recupe des donnees en plus dans le message de release
 			if (state.type == LamportMessages.RELEASE && data.getLength() >= 9) {
 				// Construction des donnees
-				byte code = data.getData()[8];
+				byte code = data.getData()[9];
 				int[] releaseData = Toolbox.buildData(data.getData(),
 						data.getLength() - 9, 9);
 
 				// Conversion en enum
-				try {
-					LamportUnlockMessage lum = LamportUnlockMessage
-							.fromCode(code);
-					// Mise a jour de la banque suivant les donnees recues
 
-					switch (lum) {
-					case DELETE_ACCOUNT:
-						bank.handleOnDelete(releaseData[0]);
-						break;
-					case UPDATE_MONEY:
-						bank.handleOnUpdate(releaseData[0], releaseData[1]);
-						break;
-					default:
-						System.err
-								.println("LamportRelease: action non implementee");
-						break;
-					}
-				} catch (ArrayIndexOutOfBoundsException aioobe) {
-					System.err.println("LamportRelease: Erreur de conversion");
-					aioobe.printStackTrace();
+				LamportUnlockMessage lum = LamportUnlockMessage.fromCode(code);
+				System.out.println("Action du release : "+lum);
+				// Mise a jour de la banque suivant les donnees recues
+				switch (lum) {
+				case DELETE_ACCOUNT:
+					bank.handleOnDelete(releaseData[0]);
+					break;
+				case UPDATE_MONEY:
+					bank.handleOnUpdate(releaseData[0], releaseData[1]);
+					break;
+				default:
+					System.err
+							.println("LamportRelease: action non implementee");
+					break;
 				}
 
 			}
@@ -233,8 +279,21 @@ public class Lamport implements Runnable {
 
 		}
 		// Indique si l'on peut avoir le mutex
-		hasMutex = (this.state[bank.getId()].type == LamportMessages.REQUEST)
-				&& localAccesGranted();
+		synchronized (this) {
+			hasMutex = (this.state[bank.getId()].type == LamportMessages.REQUEST)
+					&& localAccesGranted();
+			if (DEBUG) {
+				System.out.println("Lamport.acceptReceive()");
+			}
+			if (hasMutex) {
+				if (DEBUG)
+					System.out
+							.println("Notify() sur la banque " + bank.getId());
+
+				// TODO notify a verifier
+				notify();
+			}
+		}
 
 	}
 }

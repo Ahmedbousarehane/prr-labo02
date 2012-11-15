@@ -11,7 +11,9 @@
 public enum LamportMessages {
 	RELEASE,
 	REQUEST,
-	RECEIPT;
+	RECEIPT,
+	NEW_ACCOUNT;
+	
 	
 	/**
 	 * Permet d'obtenir le code de l'element pour un transfert reseau

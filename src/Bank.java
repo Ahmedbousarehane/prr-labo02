@@ -3,8 +3,6 @@ import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.tools.Tool;
-
 /**
  * Laboratoire No 2 PRR - modif OS : Mac OS X 10.7 et 10.8
  * 
@@ -35,53 +33,14 @@ import javax.tools.Tool;
  * @author Jonathan Gander
  */
 public class Bank implements LamportOnUnlock {
-
-	/**
-	 * Thread pour syncroniser la creation d'un compte distant entre 2 banques
+	/*
+	 * Classe interne pour gerer une requete client
 	 */
-	class HandleBankRequest implements Runnable {
-		final Bank bank;
-		final DatagramSocket socket;
-
-		public HandleBankRequest(Bank bank) throws SocketException {
-			this.bank = bank;
-			this.socket = new DatagramSocket(Config.bank2bank[bank.getId()]);
-		}
-
-		public void run() {
-			while (true) {
-				byte[] buffer = new byte[Config.bufferSize];
-				DatagramPacket packet = new DatagramPacket(buffer,
-						buffer.length);
-				try {
-					socket.receive(packet);
-					// Account
-					int account = Toolbox.byte2int(buffer);
-					// Amount
-					byte[] b = new byte[4];
-					for (int i = 0; i < b.length; i++)
-						b[i] = buffer[i + 4];
-					int money = Toolbox.byte2int(b);
-
-					bank.handleOnCreate(account, money);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-
-			}
-		}
-
-	}
-
-	/**
-	 * Classe interne pour gerer une requete client TODO : Nettoyer c'est plus
-	 * un thread
-	 */
-	class HandleClientRequest {
+	class Bank2ClientTeller {
 		private final Bank bank;
 		private final DatagramPacket packet;
 
-		public HandleClientRequest(Bank bank, DatagramPacket packet) {
+		public Bank2ClientTeller(Bank bank, DatagramPacket packet) {
 			this.bank = bank;
 			this.packet = packet;
 		}
@@ -93,7 +52,7 @@ public class Bank implements LamportOnUnlock {
 		 * @param data[] Les donnees
 		 * @throws IOException Si erreur
 		 */
-		public void sendData(ErrorServerClient code, int... data)
+		public void sendDataToClient(ErrorServerClient code, int... data)
 				throws IOException {
 
 			byte[] message = Toolbox.buildMessage(code.getCode(), data);
@@ -106,18 +65,18 @@ public class Bank implements LamportOnUnlock {
 			sendToClientSocket.send(packet);
 		}
 
-		public void run() {
+		public void handleClientRequests() {
 			// Lit les donnees
 			Menu action = Menu.fromCode(Toolbox.getDataCode(this.packet));
-			if (action == null) {
-				System.err.println("Message invalide");
-				return;
-			}
-
-			System.out.println("La banque "+bankId+" recoit:\n > action : " + action);
 			int val[] = Toolbox.buildData(this.packet);
+
+			// Debug
+			System.out.print("La banque " + bankId + " recoit: > " + action);
+			System.out.print("(");
 			for (int i = 0; i < val.length; i++)
-				System.out.println(" > " + val[i]);
+				System.out.print(val[i] + (i < val.length - 1 ? " " : ""));
+			System.out.println(")");
+
 			// Lance une action suivant le message recu
 			// TODO Envoi de la reponse au client
 			try {
@@ -125,39 +84,35 @@ public class Bank implements LamportOnUnlock {
 				switch (action) {
 				case ADD_ACCOUNT:
 					if (val[0] < 0) {
-						this.sendData(ErrorServerClient.MONTANT_INCORRECT);
+						this.sendDataToClient(ErrorServerClient.MONTANT_INCORRECT);
 						return;
 					}
 
 					int accountNumber = bank.addAccount(val[0]);
 					if (accountNumber == -1) {
 						// Renvoi erreur 4 (autre)
-						this.sendData(ErrorServerClient.AUTRE);
+						this.sendDataToClient(ErrorServerClient.AUTRE);
 						return;
 					}
 
 					// Renvoie le numero de compte au client
-					this.sendData(ErrorServerClient.OK, accountNumber);
+					this.sendDataToClient(ErrorServerClient.OK, accountNumber);
 
-					// TODO Repliquer a l'autre banque
-					// Cree les donnees
-					byte[] dataAccount = Toolbox.int2Byte(accountNumber);
-					byte[] dataMoney = Toolbox.int2Byte(val[0]);
-					byte[] data = Toolbox.concat(dataAccount, dataMoney);
-					sendToOtherBank(data);
-					
+					// Prevenir les autres banques
+					lamport.accountCreated(accountNumber, val[0]);
+
 					break;
 				case DELETE_ACCOUNT: {
 
 					ErrorServerClient ret = bank.deleteAccount(val[0]);
 					if (ret != ErrorServerClient.OK) {
 						// Erreur au client
-						this.sendData(ret);
+						this.sendDataToClient(ret);
 						return;
 					}
 
 					// Reponse au client
-					this.sendData(ErrorServerClient.OK);
+					this.sendDataToClient(ErrorServerClient.OK);
 
 				}
 					break;
@@ -167,12 +122,12 @@ public class Bank implements LamportOnUnlock {
 
 					if (ret != ErrorServerClient.OK) {
 						// Erreur au client
-						this.sendData(ret);
+						this.sendDataToClient(ret);
 						return;
 					}
 
 					// Reponse au client
-					this.sendData(ErrorServerClient.OK);
+					this.sendDataToClient(ErrorServerClient.OK);
 
 				}
 					break;
@@ -181,12 +136,12 @@ public class Bank implements LamportOnUnlock {
 					ErrorServerClient ret = bank.takeMoney(val[0], val[1]);
 					if (ret != ErrorServerClient.OK) {
 						// Erreur au client
-						this.sendData(ret);
+						this.sendDataToClient(ret);
 						return;
 					}
 
 					// Reponse au client
-					this.sendData(ErrorServerClient.OK);
+					this.sendDataToClient(ErrorServerClient.OK);
 
 				}
 					break;
@@ -195,14 +150,12 @@ public class Bank implements LamportOnUnlock {
 
 					if (money < 0) {
 						// Erreur au client
-						this.sendData(ErrorServerClient.COMPTE_INEXISTANT);
+						this.sendDataToClient(ErrorServerClient.COMPTE_INEXISTANT);
 						return;
 					}
 
 					// Reponse au client
-					// TODO Remove debug
-					System.out.println("GET_BALANCE : Solde du compte "+val[0]+" => "+money);
-					this.sendData(ErrorServerClient.OK, money);
+					this.sendDataToClient(ErrorServerClient.OK, money);
 					break;
 				default:
 					throw new IllegalStateException("Unimplemented action");
@@ -229,15 +182,10 @@ public class Bank implements LamportOnUnlock {
 	 */
 	public Bank(int id) throws SocketException {
 		this.bankId = id;
-		System.out.println("Bank " + id + " : initialisation sur le port :"
-				+ Config.banks2ClientPorts[id]);
 		listenFromClientSocket = new DatagramSocket(
 				Config.banks2ClientPorts[id]);
 
 		this.lamport = new Lamport(this);
-		new Thread(lamport).start();
-		
-		new Thread(new HandleBankRequest(this)).start();
 
 		// 0. Receptionne une commande client
 
@@ -247,7 +195,7 @@ public class Bank implements LamportOnUnlock {
 				byte[] buffer = new byte[Config.bufferSize];
 				DatagramPacket data = new DatagramPacket(buffer, buffer.length);
 				listenFromClientSocket.receive(data);
-				new HandleClientRequest(this, data).run();
+				new Bank2ClientTeller(this, data).handleClientRequests();
 
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -263,21 +211,7 @@ public class Bank implements LamportOnUnlock {
 	public int getId() {
 		return bankId;
 	}
-	
-	/**
-	 * Envoi a l'autre banque
-	 * @throws IOException 
-	 * @throws SocketException 
-	 */
-	public void sendToOtherBank(byte[] message) throws SocketException, IOException{
-		int remoteId = (this.bankId == 0?1:0);
-		// Construction de l'adresse et du datagramme
-		InetAddress host = InetAddress.getByName(Config.banksAddresses[remoteId]);
-		DatagramPacket packet = new DatagramPacket(message, message.length, host,
-				Config.bank2bank[remoteId]);
-		// Envoi
-		new DatagramSocket().send(packet);		
-	}
+
 	/**
 	 * Cree un nouveau compte
 	 * 
@@ -440,8 +374,10 @@ public class Bank implements LamportOnUnlock {
 	public void handleOnDelete(int account) {
 		System.out.println("Mutex distant lache: la banque supprime le compte "
 				+ account);
+
 		accounts.remove(accounts);
 	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -449,11 +385,13 @@ public class Bank implements LamportOnUnlock {
 	 */
 	@Override
 	public void handleOnCreate(int account, int money) {
-		System.out.println("La banque "+ bankId+" ajoute un compte distant " + account
-				+ " (" + money + ")"+ "appartenant a la banque :"+Account.getBankId(account));
+		System.out.println("Banque " + bankId + " : "
+				+ LamportMessages.NEW_ACCOUNT 
+				+ " n: " + account + ", " + money
+				+ "CHF");
+		// TODO verif des donnees
 		accounts.put(account, money);
 	}
-
 
 	/**
 	 * Permet d'instancier un serveur

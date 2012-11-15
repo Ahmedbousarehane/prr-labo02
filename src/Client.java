@@ -63,13 +63,13 @@ public class Client {
 				if (accountNumber < 0) {
 					System.out.println("Il n'y a plus de compte disponible !");
 				} else {
-					System.out.println("Compte cree : " + accountNumber);
+					System.out.println("Compte cree : " + accountNumber+"(?"+money+"?)");
 				}
 			}
 				break;
 			case DELETE_ACCOUNT: {
 				System.out.print("Entrer le numero du compte a supprimer > ");
-				int account = Account.readAccount(bankChoice);
+				int account = Toolbox.readInt(0, Account.getMaxAccount());
 
 				ErrorServerClient ret = tellers[bankChoice]
 						.deleteAccount(account);
@@ -79,8 +79,8 @@ public class Client {
 				break;
 			case ADD_MONEY: {
 				System.out.print("Entrer le numero du compte a crediter > ");
-				int account = Account.readAccount(bankChoice);
-				System.out.print("Entrer le moutant a crediter > ");
+				int account = Toolbox.readInt(0, Account.getMaxAccount());
+				System.out.print("Entrer le montant a crediter > ");
 				int money = Toolbox.readInt(1, Integer.MAX_VALUE);
 
 				ErrorServerClient ret = tellers[bankChoice].addMoney(account,
@@ -91,8 +91,8 @@ public class Client {
 				break;
 			case TAKE_MONEY: {
 				System.out.print("Entrer le numero du compte a debiter > ");
-				int account = Account.readAccount(bankChoice);
-				System.out.print("Entrer le moutant a debiter > ");
+				int account = Toolbox.readInt(0, Account.getMaxAccount());
+				System.out.print("Entrer le montant a debiter > ");
 				int money = Toolbox.readInt(1, Integer.MAX_VALUE);
 
 				ErrorServerClient ret = tellers[bankChoice].takeMoney(account,
@@ -103,7 +103,7 @@ public class Client {
 				break;
 			case GET_BALANCE: {
 				System.out.print("Entrer le numero du compte > ");
-				int account =  Toolbox.readInt(0, Account.getMaxAccount());
+				int account = Toolbox.readInt(0, Account.getMaxAccount());
 				//Account.readAccount(bankChoice);
 
 				int balance = tellers[bankChoice].getBalance(account);

@@ -169,7 +169,18 @@ public class Toolbox {
 	public static int[] buildData(DatagramPacket packet) {
 		return buildData(packet.getData(), packet.getLength(),0);
 	}
-
+	/**
+	 * @return Pause jusqu'a la pression de enter
+	 */
+	public static void pause() {
+		System.out.println("Appuyer sur ENTER pour continuer !");
+		try {
+			Scanner in = new Scanner(System.in);
+			in.nextLine();
+		} catch (Exception e) {
+			}
+	}
+	
 	/**
 	 * Permet de re-construire les donnees a partir du message recu Le code est
 	 * ignore (message[0]);

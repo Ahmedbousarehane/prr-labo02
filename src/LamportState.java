@@ -76,16 +76,16 @@ public class LamportState {
 	 */
 	public static LamportState fromByte(byte[] data,int length) {
 		assert (length >= 9);
-		// type
+		// type [1]
 		LamportState state = new LamportState();
 		state.type = LamportMessages.fromCode(data[0]);
-		// timestamp
+		// timestamp[4]
 		byte[] tempInt = new byte[4];
 		for (int i = 0; i < tempInt.length; i++) {
 			tempInt[i] = data[i + 1];
 		}
 		state.timestamp = Toolbox.byte2int(tempInt);
-		// Bank ID
+		// Bank ID[4]
 		tempInt = new byte[4];
 		for (int i = 0; i < tempInt.length; i++) {
 			tempInt[i] = data[i + 5];

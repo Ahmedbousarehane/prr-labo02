@@ -21,12 +21,8 @@ public interface Config {
 	 */
 	public static final int bufferSize = 256;
 	/**
-	 * Port utilise pour la communication entre banques (lamport)
+	 * Port utilise pour la communication entre banques (p.ex lamport)
 	 */
 	public static final int bank2bankLamportPort[] = {1517,1518};
-	/**
-	 * Utilise pour la communication entre banques sans Lamport
-	 */
-	public static final int bank2bank[] = {1519,1520};
 
 }
