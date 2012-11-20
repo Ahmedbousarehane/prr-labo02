@@ -386,7 +386,10 @@ public class Bank {
 	public void handleOnUpdate(int account, int money) {
 		System.out.println("Mutex distant lache: la banque maj le compte "
 				+ account + " avec le montant :" + money);
-
+		if (!accounts.containsKey(account)) {
+			System.out.println("handleOnUpdate : le compte n'existe plus");
+			return;
+		}
 		accounts.put(account, money);
 
 	}
@@ -408,7 +411,7 @@ public class Bank {
 		if (accounts.get(account) != 0) {
 			return;
 		}
-		accounts.remove(accounts);
+		accounts.remove(account);
 	}
 
 	/**
