@@ -14,7 +14,7 @@ public interface Config {
 	/**
 	 * IP utilises pour les communications
 	 */
-	public static final String banksAddresses[] = {"127.0.0.1","127.0.0.1"};
+	public static final String banksAddresses[] = {"192.168.2.15","192.168.2.10"};
 	
 	/**
 	 * Taille du buffer pour la recetion des donnees

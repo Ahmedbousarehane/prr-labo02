@@ -268,6 +268,10 @@ public class Bank {
 
 		lamport.lock();
 
+		if (!accounts.containsKey(account)) {
+			return ErrorServerClient.COMPTE_INEXISTANT;
+		}
+		
 		if (accounts.get(account) != 0) {
 			return ErrorServerClient.SOLDE_INVALIDE;
 		}
