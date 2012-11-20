@@ -12,6 +12,80 @@ import java.util.Scanner;
  */
 public class Toolbox {
 	/**
+	 * @return Saisie d'une banque
+	 */
+	public static int readBank() {
+		int n;
+		try {
+			Scanner in = new Scanner(System.in);
+			n = in.nextInt();
+		} catch (Exception e) {
+			return -1;
+		}
+	
+		if (n < 0 || n > Config.banksAddresses.length - 1)
+			return -1;
+		else
+			return n;
+	}
+
+	/**
+	 * @return Menu en fonction d'un entier
+	 */
+	public static Menu readMenu() {
+		int n;
+		try {
+			Scanner in = new Scanner(System.in);
+			n = in.nextInt();
+		} catch (Exception e) {
+			return null;
+		}
+	
+		if (n < 0 || n > Menu.values().length)
+			return null;
+		else
+			return Menu.values()[n];
+	}
+
+	/**
+	 * Lit la saisie d'un int compris entre min et max
+	 * 
+	 * @param min valeur min
+	 * @param max valeur max
+	 * @return int compris entre min et max (inclus)
+	 */
+	public static int readInt(int min, int max) {
+		if (min > max) {
+			int tmp = max;
+			max = min;
+			min = tmp;
+		}
+	
+		int n;
+	
+		do {
+			try {
+				Scanner in = new Scanner(System.in);
+				n = in.nextInt();
+	
+				if (n >= min && n <= max) {
+					return n;
+				}
+				String msg = "Veuillez entrer une valeur entre " + min + " et "
+						+ max + " > ";
+	
+				if (max == Integer.MAX_VALUE)
+					msg = "Veuillez entrer une valeur superieur a " + min
+							+ " > ";
+	
+				System.out.print(msg);
+			} catch (Exception e) {
+				System.out.println("Erreur de saisie");
+			}
+		} while (true);
+	}
+
+	/**
 	 * Permet de convertir un long en un tableau de byte
 	 * 
 	 * @param l long
@@ -60,80 +134,6 @@ public class Toolbox {
 	}
 
 	/**
-	 * @return Saisie d'une banque
-	 */
-	public static int readBank() {
-		int n;
-		try {
-			Scanner in = new Scanner(System.in);
-			n = in.nextInt();
-		} catch (Exception e) {
-			return -1;
-		}
-
-		if (n < 0 || n > Config.banksAddresses.length - 1)
-			return -1;
-		else
-			return n;
-	}
-
-	/**
-	 * @return Menu en fonction d'un entier
-	 */
-	public static Menu readMenu() {
-		int n;
-		try {
-			Scanner in = new Scanner(System.in);
-			n = in.nextInt();
-		} catch (Exception e) {
-			return null;
-		}
-
-		if (n < 0 || n > Menu.values().length)
-			return null;
-		else
-			return Menu.values()[n];
-	}
-
-	/**
-	 * Lit la saisie d'un int compris entre min et max
-	 * 
-	 * @param min valeur min
-	 * @param max valeur max
-	 * @return int compris entre min et max (inclus)
-	 */
-	public static int readInt(int min, int max) {
-		if (min > max) {
-			int tmp = max;
-			max = min;
-			min = tmp;
-		}
-
-		int n;
-
-		do {
-			try {
-				Scanner in = new Scanner(System.in);
-				n = in.nextInt();
-
-				if (n >= min && n <= max) {
-					return n;
-				}
-				String msg = "Veuillez entrer une valeur entre " + min + " et "
-						+ max + " > ";
-
-				if (max == Integer.MAX_VALUE)
-					msg = "Veuillez entrer une valeur superieur a " + min
-							+ " > ";
-
-				System.out.print(msg);
-			} catch (Exception e) {
-				System.out.println("Erreur de saisie");
-			}
-		} while (true);
-	}
-
-	/**
 	 * Permet de construire un message avec la methode et les donnees a envoyer
 	 * 
 	 * @param code Code de la methode
@@ -169,18 +169,6 @@ public class Toolbox {
 	public static int[] buildData(DatagramPacket packet) {
 		return buildData(packet.getData(), packet.getLength(),0);
 	}
-	/**
-	 * @return Pause jusqu'a la pression de enter
-	 */
-	public static void pause() {
-		System.out.println("Appuyer sur ENTER pour continuer !");
-		try {
-			Scanner in = new Scanner(System.in);
-			in.nextLine();
-		} catch (Exception e) {
-			}
-	}
-	
 	/**
 	 * Permet de re-construire les donnees a partir du message recu Le code est
 	 * ignore (message[0]);
@@ -249,5 +237,18 @@ public class Toolbox {
 			data[i + d2.length] = d2[i];
 		}
 		return data;
+	}
+
+	/**
+	 * @return Pause jusqu'a la pression de enter
+	 */
+	public static void pause() {
+		// TODO Supprimer cette methode
+		System.out.println("Appuyer sur ENTER pour continuer !");
+		try {
+			Scanner in = new Scanner(System.in);
+			in.nextLine();
+		} catch (Exception e) {
+			}
 	}
 }

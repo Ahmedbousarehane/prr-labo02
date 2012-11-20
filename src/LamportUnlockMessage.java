@@ -1,6 +1,6 @@
 
 /**
- * Donnees aditionnelles envoyee lorsque on relache un mutex lamport.
+ * Donnees aditionnelles envoyees lorsque on relache un mutex Lamport.
  * Attention, 127 elements au maximum
  * @author Laurent Constantin
  * @author Jonathan Gander
@@ -9,7 +9,6 @@
 public enum LamportUnlockMessage {
 	DELETE_ACCOUNT,
 	UPDATE_MONEY;
-	// CREATE_ACCOUNT n'est pas fait avec un mutex..
 	
 	/**
 	 * Permet d'obtenir le code de l'element pour un transfert reseau

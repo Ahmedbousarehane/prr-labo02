@@ -1,5 +1,5 @@
 /**
- * Modelise les erreur entre le serveur et le client
+ * Modelise les erreurs entre le serveur et le client
  * Attention : 127 elements maximum
  * @author Laurent Constantin
  * @author Jonathan Gander

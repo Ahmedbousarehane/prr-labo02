@@ -1,6 +1,7 @@
 /**
- * Modelise les message de fonctionnement pour Lamport Le type du message et
- * l'estampille sont utilises ainsi que la conversion avec des octets.
+ * Modelise les messages de fonctionnement pour Lamport : le type du message,
+ * l'estampille et l'id de la banque emettrice sont utilises.
+ * La conversion en octet est aussi geree dans cette classe.
  * 
  * @author Laurent Constantin
  * @author Jonathan Gander 

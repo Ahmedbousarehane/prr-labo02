@@ -32,25 +32,38 @@ import java.util.Map;
  * @author Laurent Constantin
  * @author Jonathan Gander
  */
-public class Bank implements LamportOnUnlock {
-	/*
+public class Bank {
+	/**
 	 * Classe interne pour gerer une requete client
 	 */
 	class Bank2ClientTeller {
 		private final Bank bank;
 		private final DatagramPacket packet;
 
+		/**
+		 * Constructeur
+		 * 
+		 * @param bank
+		 *            La banque qu'il doit gerer
+		 * @param packet
+		 *            Paquet envoye par le client
+		 */
 		public Bank2ClientTeller(Bank bank, DatagramPacket packet) {
 			this.bank = bank;
 			this.packet = packet;
+
+			handleClientRequests();
 		}
 
 		/**
 		 * Envoie des donnees au client
 		 * 
-		 * @param code Le code d'erreur
-		 * @param data[] Les donnees
-		 * @throws IOException Si erreur
+		 * @param code
+		 *            Le code d'erreur
+		 * @param data
+		 *            [] Les donnees
+		 * @throws IOException
+		 *             Si erreur
 		 */
 		public void sendDataToClient(ErrorServerClient code, int... data)
 				throws IOException {
@@ -65,7 +78,10 @@ public class Bank implements LamportOnUnlock {
 			sendToClientSocket.send(packet);
 		}
 
-		public void handleClientRequests() {
+		/**
+		 * Gere une requete client (appel des bonnes methodes)
+		 */
+		private void handleClientRequests() {
 			// Lit les donnees
 			Menu action = Menu.fromCode(Toolbox.getDataCode(this.packet));
 			int val[] = Toolbox.buildData(this.packet);
@@ -78,12 +94,11 @@ public class Bank implements LamportOnUnlock {
 			System.out.println(")");
 
 			// Lance une action suivant le message recu
-			// TODO Envoi de la reponse au client
 			try {
 
 				switch (action) {
 				case ADD_ACCOUNT:
-					if (val[0] < 0) {
+					if (val[0] < 1) {
 						this.sendDataToClient(ErrorServerClient.MONTANT_INCORRECT);
 						return;
 					}
@@ -171,13 +186,13 @@ public class Bank implements LamportOnUnlock {
 	private Map<Integer, Integer> accounts = new HashMap<Integer, Integer>();
 	private int bankId;
 	private final Lamport lamport;
-
 	private DatagramSocket listenFromClientSocket;
 
 	/**
 	 * Constructeur d'une banque
 	 * 
-	 * @param id Id de la banque
+	 * @param id
+	 *            Id de la banque
 	 * @throws SocketException
 	 */
 	public Bank(int id) throws SocketException {
@@ -188,14 +203,13 @@ public class Bank implements LamportOnUnlock {
 		this.lamport = new Lamport(this);
 
 		// 0. Receptionne une commande client
-
 		while (true) {
 			try {
-				// 1. Cree un thread pour gerer une requete client
+				// 1. Ecoute et gere la demande d'un client
 				byte[] buffer = new byte[Config.bufferSize];
 				DatagramPacket data = new DatagramPacket(buffer, buffer.length);
 				listenFromClientSocket.receive(data);
-				new Bank2ClientTeller(this, data).handleClientRequests();
+				new Bank2ClientTeller(this, data);
 
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -215,7 +229,8 @@ public class Bank implements LamportOnUnlock {
 	/**
 	 * Cree un nouveau compte
 	 * 
-	 * @param montant initial
+	 * @param montant
+	 *            initial
 	 * @return numero du compte
 	 */
 	public int addAccount(int money) {
@@ -237,7 +252,8 @@ public class Bank implements LamportOnUnlock {
 	/**
 	 * Supprime un compte (en section critique)
 	 * 
-	 * @param account Compte a supprimer
+	 * @param account
+	 *            Compte a supprimer
 	 * @return Code d'erreur
 	 * @throws IOException
 	 */
@@ -266,8 +282,10 @@ public class Bank implements LamportOnUnlock {
 	/**
 	 * Ajoute un montant a un compte (en section critique)
 	 * 
-	 * @param account Compte a crediter
-	 * @param money Montant a ajouter
+	 * @param account
+	 *            Compte a crediter
+	 * @param money
+	 *            Montant a ajouter
 	 * @return Code d'erreur
 	 * @throws IOException
 	 */
@@ -299,8 +317,10 @@ public class Bank implements LamportOnUnlock {
 	/**
 	 * Debite un montant a un compte (en section critique)
 	 * 
-	 * @param account Compte a crediter
-	 * @param montant a supprimer
+	 * @param account
+	 *            Compte a crediter
+	 * @param montant
+	 *            a supprimer
 	 * @return Code d'erreur
 	 * @throws IOException
 	 */
@@ -340,7 +360,8 @@ public class Bank implements LamportOnUnlock {
 	/**
 	 * Obtient le solde d'un compte
 	 * 
-	 * @param account compte a qui obtenir le solde
+	 * @param account
+	 *            compte a qui obtenir le solde
 	 * @return Solde du compte
 	 */
 	public int getBalance(int account) {
@@ -353,10 +374,11 @@ public class Bank implements LamportOnUnlock {
 	/**
 	 * Suppression d'un element lorsqu'une autre banque libere le mutex
 	 * 
-	 * @param account Le compte
-	 * @param money le nouveau montant
+	 * @param account
+	 *            Le compte
+	 * @param money
+	 *            le nouveau montant
 	 */
-	@Override
 	public void handleOnUpdate(int account, int money) {
 		System.out.println("Mutex distant lache: la banque maj le compte "
 				+ account + " avec le montant :" + money);
@@ -368,35 +390,47 @@ public class Bank implements LamportOnUnlock {
 	/**
 	 * Suppression d'un element lorsqu'une autre banque libere le mutex
 	 * 
-	 * @param account Le compte a supprimer
+	 * @param account
+	 *            Le compte a supprimer
 	 */
-	@Override
 	public void handleOnDelete(int account) {
 		System.out.println("Mutex distant lache: la banque supprime le compte "
 				+ account);
 
+		if (!accounts.containsKey(account)) {
+			return;
+		}
+
+		if (accounts.get(account) != 0) {
+			return;
+		}
 		accounts.remove(accounts);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Replication d'un compte quand une autre banque en cree un.
 	 * 
-	 * @see LamportOnUnlock#handleOnCreate(int, int)
+	 * @param account
+	 *            Le compte a creer
+	 * @param money
+	 *            L'argent
 	 */
-	@Override
 	public void handleOnCreate(int account, int money) {
 		System.out.println("Banque " + bankId + " : "
-				+ LamportMessages.NEW_ACCOUNT 
-				+ " n: " + account + ", " + money
+				+ LamportMessages.NEW_ACCOUNT + " n: " + account + ", " + money
 				+ "CHF");
-		// TODO verif des donnees
+
+		if (money < 1)
+			return;
+
 		accounts.put(account, money);
 	}
 
 	/**
-	 * Permet d'instancier un serveur
+	 * Permet d'instancier une banque
 	 * 
-	 * @param args MulticastHost, port serveur, port client, nombre de clients
+	 * @param args
+	 *            MulticastHost, port serveur, port client, nombre de clients
 	 */
 	public static void main(String[] args) {
 		// java -jar Bank.jar BankId

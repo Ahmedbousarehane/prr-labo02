@@ -63,7 +63,7 @@ public class Client {
 				if (accountNumber < 0) {
 					System.out.println("Il n'y a plus de compte disponible !");
 				} else {
-					System.out.println("Compte cree : " + accountNumber+"(?"+money+"?)");
+					System.out.println("Compte cree : " + accountNumber);
 				}
 			}
 				break;
@@ -104,11 +104,10 @@ public class Client {
 			case GET_BALANCE: {
 				System.out.print("Entrer le numero du compte > ");
 				int account = Toolbox.readInt(0, Account.getMaxAccount());
-				//Account.readAccount(bankChoice);
-
 				int balance = tellers[bankChoice].getBalance(account);
 				if (balance < 0) {
-					System.out.println("Le compte "+account+" n'existe pas !");
+					System.out.println("Le compte " + account
+							+ " n'existe pas !");
 				} else {
 					System.out.println("Solde du compte " + account + " : "
 							+ balance);
@@ -127,7 +126,7 @@ public class Client {
 	}
 
 	/**
-	 * Permet d'afficher une message d'erreur correspondant a une reponse du
+	 * Permet d'afficher un message d'erreur correspondant a une reponse du
 	 * serveur au client
 	 * 
 	 * @param response

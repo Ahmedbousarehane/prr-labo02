@@ -3,7 +3,7 @@
  * 
  * @version 1.0
  * @author Laurent Constantin
- * @author Jonathan Gander*
+ * @author Jonathan Gander
  */
 public class Account {
 	/**
@@ -50,10 +50,12 @@ public class Account {
 	 */
 	public static int serializeAccount(int bank, int account) {
 		if (bank > (int)(Math.pow(2,9) - 1)) {
-			throw new IllegalArgumentException("Le numero de banque est trop grand !");
+			throw new 
+			IllegalArgumentException("Le numero de banque est trop grand !");
 		}
 		if (account < 0 || account > getMaxAccount()) {
-			throw new IllegalArgumentException("Le numero de compte n'est pas valide !");
+			throw new 
+			IllegalArgumentException("Le numero de compte n'est pas valide !");
 		}
 		
 		bank = bank << 24;
