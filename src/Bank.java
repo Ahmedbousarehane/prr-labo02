@@ -4,29 +4,109 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Laboratoire No 2 PRR - modif OS : Mac OS X 10.7 et 10.8
+ * Laboratoire No 2 PRR
+ * Auteurs : L. Constantin & J.Gander
+ * Date : octobre-novembre 2012
+ * OS : Mac OS X 10.7 et 10.8
  * 
- * @author L. Constantin & J.Gander Date :
- * @date octobre-novembre 2012
+ * DESCRIPTION
+ * Dans ce laboratoire, il a ete demande de simuler une banque, representee par
+ * deux succursales. Ces deux succursales stockent des comptes (numéro, solde)
+ * et doivent les partager entre elles.
+ * De plus, une application client permet de faire des requetes sur la banque
+ * independemment de la succursale choisie.
+ * La banque doit pouvoir offrir au client les fonctionnalites suivantes :
+ * - Creer un compte
+ * - Supprimer un compte
+ * - Deposer un montant
+ * - Retirer un montant
+ * - Obtenir le solde d'un compte
+ * Afin de s'assurer de la coherence des donnees, les deux succursales utilisent
+ * l'algorithme de Lamport etudie en classe. Une petite modification de
+ * l'algorithme a ete faite : lors du message de liberation, une succursale
+ * communique a l'autre les changements effectues.
+ * Les methodes "creer un compte" et "obtenir le solde d'un compte" ne neces-
+ * sitent pas d'exclusion mutuelle entre les succursales contrairement aux
+ * trois autres.
+ * Les numeros de comptes sont representes par des entiers sur 32 bits avec 8
+ * bits pour indiquer l'id de la succursale et 24 bits pour un id du compte au
+ * sein de la succursale. Ceci permet d'eviter les communications inutiles lors
+ * de la creation de compte.
+ * Suppositions : le reseau et les succursales sont fiables. Les banques sont
+ * lancees avant les clients.  
  * 
- *       DESCRIPTION
+ * ANALYSE
+ * Dans notre logique, la classe Client.java represente uniquement un terminal
+ * permettant au client de faire des requetes. Ces dernieres sont gerees par un
+ * guichetier (Teller.java). Celui-ci va gerer les communications avec la 
+ * succursale desiree.
+ * La succursale traite les demandes clients une par une. Chaque succursale a
+ * un thread Lamport permettant l'exclusion mutuelle si besoin avec l'autre 
+ * succursale.
+ * 
+ * Lors de notre analyse, nous avons tout d'abord voulu mettre Lamport hors
+ * d'un thread. Cependant, l'ecoute sur le socket doit se faire en tout temps 
+ * afin de gerer les replications. Si aucune demande client n'est faite, 
+ * l'ecoute ne serait pas effectuee et la replication ne fonctionnerait 
+ * donc pas. 
+ * Nous avons donc decide de separer la succursale (Bank.java) et le thread 
+ * Lamport (Lamport.java) afin de mieux correspondre avec l'algorithme Ada
+ * etudie en cours.
  * 
  * 
- *       ANALYSE
+ * COMMUNICATIONS
+ * Afin de bien structurer les communications, nous avons utilise des types
+ * enumeres pour representer les types de messages transitant sur le reseau.
  * 
- *       REMARQUES
+ * Les communications entre client et banque (Teller et Bank) ont la forme 
+ * suivante : (Type_Message [, Numero_Compte] [, Montant])
  * 
- *       TESTS
+ * Les communications Lamport en cas de Requete ou Quittance ont la forme 
+ * suivante : (Type_Message, Estampille, Id_Banque_Emettrice)
+ * 
+ * Les communications Lamport en cas de Liberation ont la forme suivante afin 
+ * de repliquer les donnees a l'autre succursale :
+ * (Type_Message, Estampille, Id_Banque_Emettrice, Type_Message 
+ * [, Numero_Compte] [, Montant])
+ * 
+ * Lors de la creation de compte, la replication doit etre effectuee sans
+ * utiliser Lamport. Le message de replication est tout de meme envoye en
+ * utilisant cette classe afin de ne pas creer un thread supplementaire dans
+ * les succursales. Ce message a la forme suivante :
+ * (Type_Message, Numero_Compte, Montant)
+ *
+ * La creation des messages a ete faite par la classe Toolbox.
+ *
+ * REMARQUES
+ * Le fait d'avoir utilise un thread pour Lamport nous a permis de bloquer le
+ * traitement de la demande client a l'aide d'un wait() lorsque la succursale
+ * n'a pas l'exclusion mutuelle. Et de la debloquer a l'aide d'un notify lorsque
+ * l'acces est autorise. Il ne peut donc y avoir qu'une seule demande client 
+ * traitee a la fois.
+ * 
+ * A comparer avec le laboratoire no 1, nous avons remarque qu'il nous a ete
+ * plus difficile d'implementer l'architecture du probleme. 
+ * 
+ * TESTS
  * 
  * 
- *       STRUCTURE DU PROGRAMME
- *       <ul>
- *       <li>Config.java : valeurs par defaut pour utiliser le programme</li>
- *       <li>ConfigParser : parser la ligne de commande pour creer la config</li>
- *       <li>Labo02 : lance des clients et un serveur dans des threads (tests)..
- *       </li>
- *       </ul>
- *       UTILISATION
+ * STRUCTURE DU PROGRAMME
+ * Config.java : valeurs par defaut pour utiliser le programme
+ * ConfigParser : parser la ligne de commande pour creer la config
+ * Labo02 : lance des clients et un serveur dans des threads (tests)..
+ * 
+ * 
+ * UTILISATION
+ * Il faut tout d'abord modifier le fichier Config.java avec les bonnes IPs.
+ * 
+ * Le laboratoire se decompose en deux executables JAR pour le client et les 
+ * succursale. Les jars peuvent etre crees a l'aide de l'utilitaire ANT.
+ * 
+ * Les fichiers se lancent avec la commande java -jar NomJar Parametres
+ * Pour le client :
+ * java -jar Client.jar
+ * Pour la succursale :
+ * java -jar Bank.jar id_de_la_succursale (0 ou 1)
  * 
  * @version 1.0
  * @author Laurent Constantin
@@ -271,7 +351,7 @@ public class Bank {
 		if (!accounts.containsKey(account)) {
 			return ErrorServerClient.COMPTE_INEXISTANT;
 		}
-		
+
 		if (accounts.get(account) != 0) {
 			return ErrorServerClient.SOLDE_INVALIDE;
 		}
