@@ -140,9 +140,6 @@ public class Lamport implements Runnable {
 			throws IOException {
 		System.out.println("Lamport.unlock()");
 
-		// TODO a enlever
-		Toolbox.pause();
-
 		// Construction du message a envoyer
 		state[bank.getId()].set(LamportMessages.RELEASE, localTimestamp);
 		byte[] messageData = state[bank.getId()].toByte(bank.getId());

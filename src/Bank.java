@@ -88,13 +88,36 @@ import java.util.Map;
  * plus difficile d'implementer l'architecture du probleme. 
  * 
  * TESTS
+ * Afin de verifier le bon fonctionnement de notre programme, nous avons 
+ * realise des tests.
+ * Dans une premier temps nous avons execute les programmes localement sur la
+ * meme machines. Puis nous avons cree un reseau AdHoc entre nos deux machines.
+ * Chacune hebergeait un client et une succursale.
+ * Nous avons realise des tests simples sans reelle concurrence. Puis par la
+ * suite, nous avons teste des cas plus complexe : par exemple, un client veut
+ * supprimer un compte et un autre veut ajouter un montant sur ce meme compte.
+ * Avec ce procede, nous avons pu corriger un probleme lors de la suppression
+ * d'un compte et sa replication sur l'autre succursale.
  * 
+ * Afin de mieux tester la liberation de la SC par une succursale et la 
+ * continuite de l'autre, nous avons ajoute une pause qui se relance uniquement
+ * a la pression d'une touche au clavier par nos soins. Ceci a permis de 
+ * realiser un debuggage "pas a pas".
  * 
  * STRUCTURE DU PROGRAMME
+ * Account.java : methodes statiques pour gerer les comptes
+ * Bank.java : represente la banque
+ * Client.java : represente le client
  * Config.java : valeurs par defaut pour utiliser le programme
- * ConfigParser : parser la ligne de commande pour creer la config
- * Labo02 : lance des clients et un serveur dans des threads (tests)..
- * 
+ * ConfigParser.java : parser la ligne de commande pour creer la config
+ * ErrorServerClient.java : erreurs du serveur au client
+ * Lamport.java : algorithme de Lamport
+ * LamportMessages.java : messages transitants avec Lamport
+ * LamportState.java : etats utilises dans Lamport
+ * LamportUnlockMessage.java : messages envoyes lors de la liberation de la SC
+ * Menu.java : differents menus du client
+ * Teller.java : guichetier qui fait la communication client->banque
+ * Toolbox.java : utilitaires (saisies et conversions en bytes)
  * 
  * UTILISATION
  * Il faut tout d'abord modifier le fichier Config.java avec les bonnes IPs.
@@ -179,7 +202,8 @@ public class Bank {
 				switch (action) {
 				case ADD_ACCOUNT:
 					if (val[0] < 1) {
-						this.sendDataToClient(ErrorServerClient.MONTANT_INCORRECT);
+						this.sendDataToClient(
+								ErrorServerClient.MONTANT_INCORRECT);
 						return;
 					}
 
@@ -245,7 +269,8 @@ public class Bank {
 
 					if (money < 0) {
 						// Erreur au client
-						this.sendDataToClient(ErrorServerClient.COMPTE_INEXISTANT);
+						this.sendDataToClient(
+								ErrorServerClient.COMPTE_INEXISTANT);
 						return;
 					}
 

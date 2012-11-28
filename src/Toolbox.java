@@ -239,16 +239,4 @@ public class Toolbox {
 		return data;
 	}
 
-	/**
-	 * @return Pause jusqu'a la pression de enter
-	 */
-	public static void pause() {
-		// TODO Supprimer cette methode
-		System.out.println("Appuyer sur ENTER pour continuer !");
-		try {
-			Scanner in = new Scanner(System.in);
-			in.nextLine();
-		} catch (Exception e) {
-			}
-	}
 }
