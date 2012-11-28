@@ -280,7 +280,7 @@ public class Lamport implements Runnable {
 					break;
 				default:
 					System.err
-							.println("LamportRelease: action non implementee");
+					  .println("LamportRelease: non implementee");
 					break;
 				}
 
@@ -298,15 +298,15 @@ public class Lamport implements Runnable {
 		}
 		// Indique si l'on peut avoir le mutex
 		synchronized (this) {
-			hasMutex = (this.state[bank.getId()].type == LamportMessages.REQUEST)
-					&& localAccesGranted();
+			hasMutex = (this.state[bank.getId()].type == 
+					LamportMessages.REQUEST) && localAccesGranted();
 			if (DEBUG) {
 				System.out.println("Lamport.acceptReceive()");
 			}
 			if (hasMutex) {
 				if (DEBUG)
 					System.out
-							.println("Notify() sur la banque " + bank.getId());
+					  .println("Notify() sur la banque " + bank.getId());
 				notify();
 			}
 		}

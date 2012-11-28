@@ -203,7 +203,7 @@ public class Bank {
 				case ADD_ACCOUNT:
 					if (val[0] < 1) {
 						this.sendDataToClient(
-								ErrorServerClient.MONTANT_INCORRECT);
+						  ErrorServerClient.MONTANT_INCORRECT);
 						return;
 					}
 
@@ -270,7 +270,7 @@ public class Bank {
 					if (money < 0) {
 						// Erreur au client
 						this.sendDataToClient(
-								ErrorServerClient.COMPTE_INEXISTANT);
+						  ErrorServerClient.COMPTE_INEXISTANT);
 						return;
 					}
 
