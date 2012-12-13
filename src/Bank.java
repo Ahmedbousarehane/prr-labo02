@@ -34,7 +34,8 @@ import java.util.Map;
  * de la creation de compte.
  * Suppositions : le reseau et les succursales sont fiables. Les banques sont
  * lancees avant les clients.  
- * 
+ * FIXME Indiquer protocole reseau UDP
+ * FIXME Indiquer les contraintes (montant > 0 ,..)
  * ANALYSE
  * Dans notre logique, la classe Client.java represente uniquement un terminal
  * permettant au client de faire des requetes. Ces dernieres sont gerees par un
@@ -201,6 +202,7 @@ public class Bank {
 
 				switch (action) {
 				case ADD_ACCOUNT:
+					// FIXME Commenter
 					if (val[0] < 1) {
 						this.sendDataToClient(
 						  ErrorServerClient.MONTANT_INCORRECT);
@@ -372,7 +374,8 @@ public class Bank {
 		}
 
 		lamport.lock();
-
+		
+		// FIME Avant les return d'erreur,... UNLOCK
 		if (!accounts.containsKey(account)) {
 			return ErrorServerClient.COMPTE_INEXISTANT;
 		}
@@ -476,7 +479,7 @@ public class Bank {
 	public int getBalance(int account) {
 		if (accounts.containsKey(account))
 			return accounts.get(account);
-
+		// FIXME utiliser la classe d erreur
 		return -1;
 	}
 

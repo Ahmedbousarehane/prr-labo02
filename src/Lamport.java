@@ -82,6 +82,7 @@ public class Lamport implements Runnable {
 	public void lock() throws IOException {
 		System.out.println("Lamport.lock()");
 		// Mise a jour de l'estampille
+		// FIXME Synchronise a mettre
 		localTimestamp++;
 		// Envoi d'une requete
 		state[bank.getId()].set(LamportMessages.REQUEST, localTimestamp);
@@ -238,6 +239,7 @@ public class Lamport implements Runnable {
 		int remoteBankId = state.remoteBankId;
 
 		// 1. Met a jour l'estampille
+		// FIXME Synchronized
 		localTimestamp = Math.max(localTimestamp, state.timestamp) + 1;
 
 		// 2. Effectue les actions suivant le type de message recu
